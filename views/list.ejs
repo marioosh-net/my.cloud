@@ -1,0 +1,16 @@
+<% if(typeof urls != 'undefined' && urls.length > 0) { %>
+<div class="panel panel-default" style="margin-top: 10px;">
+  <div class="panel-heading">Ścieżki</div>
+  <table class="table">
+    <tbody>
+		<% for(var i=0; i<urls.length; i++){ %>
+		<tr>
+			<td>
+			<a href="/get/<%=urls[i].id%>"><%=urls[i].url%></a>
+			</td>
+		</tr>
+		<% } %>        	
+    </tbody>
+  </table>
+</div>
+<% } %>
