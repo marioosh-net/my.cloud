@@ -6,7 +6,7 @@
 		<% for(var i=0; i<urls.length; i++){ %>
 		<tr>
 			<td>
-			<a href="/get/<%=urls[i].id%>"><%=urls[i].url%></a>
+			<a href="/get/<%=urls[i].id%>"><%=urls[i].url%></a> <%if(typeof urls[i].type != 'undefined') {%><%=urls[i].type%> <%}%>
 			</td>
 		</tr>
 		<% } %>        	

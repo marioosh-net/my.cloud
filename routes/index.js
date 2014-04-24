@@ -62,6 +62,7 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 			if(i != null) {
 				urls.push({
 					url:i.url,
+					type:i.type,
 					id:i._id
 				});
 			} else {
@@ -150,6 +151,7 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 			      	var urlsCollection = db.collection('urls');
 			      	urlsCollection.insert({
 			      		url:form.url,
+			      		type:res1.headers['content-type'],
 			      		grid_id: fileId
 			      	}, function(err, result) {
 			      		if(err) {
