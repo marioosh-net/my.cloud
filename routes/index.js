@@ -97,25 +97,47 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 			url: req.param('url')
 		};
 
+		var io = req.app.get('io');
+
 		/**
 		 * download file and save into GridFS
 		 */
 
+/*
 		var fileId = new ObjectID();
 		var gridStore = new GridStore(db, fileId, "w", {root:'fs'});
 		gridStore.chunkSize = 1024 * 256;
 		gridStore.open(function(err, gridStore) {
+			*/
 
 			var request = require(form.url.lastIndexOf('https', 0) === 0?'https':'http').get(form.url, function(res1) {
+
+				var contentLength = parseInt(res1.headers['content-length']);
+
 			  	if(res1.statusCode != 200) {
-			  		return res1.render('error',{error: new Error('Problem z pobraniem adresu')});
+			  		return res.status(400).send('Problem z pobraniem adresu');
 			  	}				
+			  	// res1.headers['content-type']
+
+
+				var fileId = new ObjectID();
+				var gridStore = new GridStore(db, fileId, "w", {root:'fs', content_type:res1.headers['content-type']});
+				gridStore.chunkSize = 1024 * 256;
+				gridStore.open(function(err, gridStore) {
+				
 
 			  	/**
 			  	 * write chunk to gridfs
 			  	 */
 			    res1.on('data', function(chunk) {
 					gridStore.write(chunk, function(err, gridStore) {
+						console.log('wri START');
+						console.log(gridStore.position);
+						console.log(gridStore.currentChunk);
+						console.log('wri END');
+
+						var pr = Math.ceil(parseInt(gridStore.position)/contentLength * 100);
+ 						io.sockets.emit('progress',{p:pr});
 					});							    	
 			    });
 			 
@@ -126,28 +148,37 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 			      	 * on write full insert url with id to gridfs
 			      	 */
 			      	var urlsCollection = db.collection('urls');
-					urlsCollection.insert({
-						url:form.url,
-						grid_id: fileId
-					}, function(err, result) {
-						if(err) {
-							throw err;
-						}
-						getUrls(function(err, urls){
-							res.render('index', { 
-								urls: urls,
-								form:form 
-							});
-						}); 
-					});			      	
+			      	urlsCollection.insert({
+			      		url:form.url,
+			      		grid_id: fileId
+			      	}, function(err, result) {
+			      		if(err) {
+			      			throw err;
+			      		}
+			      		getUrls(function(err, urls){
+			      			res.status(200).send('ok');
+			      			/*
+			      			res.render('index', { 
+			      				urls: urls,
+			      				form:form 
+			      			});
+							*/
+			      		}); 
+			      	});			      	
 
 			      });
-			    })			  	
+			    });
+
+			    });			  	
+
 			});
-			 request.on('error', function(e) {
-			  	return res.render('error',{error: new Error('Problem z pobraniem adresu')});
-			  });		
-		});
+			request.on('error', function(e) {
+				res.status(400).send('error');
+				/*
+				return res.render('error',{error: new Error('Problem z pobraniem adresu')});
+				*/
+			});		
+		//});
 
 	});
 
@@ -156,12 +187,13 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 			new GridStore(db, url.grid_id, "r").open(function(err, gridStore) {
 				var stream = gridStore.stream(true);
 				var data = '';
-				  stream.on("data", function(chunk) {
-				    data += chunk;
-				  });
-				  stream.on("end", function() {
+				stream.on("data", function(chunk) {
+					data += chunk;
+				});
+				stream.on("end", function() {
+					res.set('Content-Type', gridStore.contentType);
 					res.send(data);				    
-				  });
+				});
 			});
 		});
 	});
