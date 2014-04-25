@@ -6,6 +6,14 @@ var GridStore = require('mongodb').GridStore;
 var Grid = require('mongodb').Grid;
 var ObjectID = require('mongodb').ObjectID;
 
+var request = require('request');
+
+var mongo = require('mongodb');
+var Grid = require('gridfs-stream');
+
+/* youtube support */
+var ytdl = require('ytdl');
+
 MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 	if(err) {
 		throw err;
@@ -64,6 +72,63 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 		};
 
 		var io = req.app.get('io');
+
+		var yt = form.url.lastIndexOf('https://www.youtube.com/', 0) === 0;
+		/*
+		if(yt) {
+			var ystream = ytdl(form.url, { filter: function(format) { return format.container === 'mp4'; } });
+			ystream.pipe(fs.createWriteStream('vide.mp4'));
+		}
+		*/
+
+		var gfs = Grid(db, mongo);
+		var fileId = new ObjectID();
+		var writestream = gfs.createWriteStream({
+    		_id: fileId
+		});
+
+		var r = request(form.url/*, function(err, res, body){
+			console.log(res);
+			if (!(!err && res.statusCode == 200)) {
+				return res.status(400).send('Problem z pobraniem adresu');
+			}
+		}*/)
+		.pipe(writestream, { end: false });
+
+		r.on('data', function(chunk) {
+			console.log('1');
+			/*
+			var pr = Math.floor(parseInt(gridStore.position)/contentLength * 100);
+			io.sockets.emit('progress',{p:pr});						
+			*/
+		})		
+		.on('end', function(){
+			console.log('end');
+			/**
+			 * on write full insert url with id to gridfs
+			 */
+			var urlsCollection = db.collection('urls');
+			urlsCollection.insert({
+				url:form.url,
+				type:res1.headers['content-type'],
+				grid_id: fileId
+			}, function(err, result) {
+				if(err) {
+					throw err;
+				}
+				getUrls(function(err, urls){
+					res.status(200).send('ok');
+				}); 
+			});			      	
+		})
+		.on('error', function(e) {
+			res.status(400).send('error');
+		});
+
+		console.log('sss');
+
+		/*
+
 		var request = require(form.url.lastIndexOf('https', 0) === 0?'https':'http').get(form.url, function(res1) {
 
 			var contentLength = parseInt(res1.headers['content-length']);
@@ -77,9 +142,6 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 			gridStore.chunkSize = 1024 * 256;
 			gridStore.open(function(err, gridStore) {
 			
-			  	/**
-			  	 * write chunk to gridfs
-			  	 */
 			    res1.on('data', function(chunk) {
 					gridStore.write(chunk, function(err, gridStore) {
 						var pr = Math.floor(parseInt(gridStore.position)/contentLength * 100);
@@ -90,9 +152,6 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 			    res1.on('end', function() {			    	
 					gridStore.close(function(err, result) {
 
-						/**
-						 * on write full insert url with id to gridfs
-						 */
 						var urlsCollection = db.collection('urls');
 						urlsCollection.insert({
 							url:form.url,
@@ -115,7 +174,8 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 		});
 		request.on('error', function(e) {
 			res.status(400).send('error');
-		});		
+		});
+		*/		
 
 	});
 
