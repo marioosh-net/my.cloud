@@ -5,6 +5,7 @@ var MongoClient = require('mongodb').MongoClient;
 var GridStore = require('mongodb').GridStore;
 var Grid = require('mongodb').Grid;
 var ObjectID = require('mongodb').ObjectID;
+var base64 = require('base64-stream');
 
 MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 	if(err) {
@@ -32,7 +33,6 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 					id:i._id
 				});
 			} else {
-				console.log(urls);
 				callback(null, urls);
 			}
 		});		
@@ -73,13 +73,13 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 		  	if(res1.statusCode != 200) {
 		  		return res.status(400).send('Problem z pobraniem adresu');
 		  	}				
+		  	res1.setEncoding('base64');
 		  	// res1.headers['content-type']
 
 
 			var fileId = new ObjectID();
 			var gridStore = new GridStore(db, fileId, "w", {root:'fs', content_type:res1.headers['content-type']});
 			gridStore.chunkSize = 1024 * 256;
-			
 			gridStore.open(function(err, gridStore) {
 			
 			  	/**
@@ -87,12 +87,12 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 			  	 */
 			    res1.on('data', function(chunk) {
 					gridStore.write(chunk, function(err, gridStore) {
-						var pr = Math.ceil(parseInt(gridStore.position)/contentLength * 100);
-						io.sockets.emit('progress',{p:pr});
+						var pr = Math.floor(parseInt(gridStore.position)/contentLength * 100);
+						io.sockets.emit('progress',{p:pr});						
 					});							    	
 			    });
 			 
-			    res1.on('end', function() {
+			    res1.on('end', function() {			    	
 					gridStore.close(function(err, result) {
 
 						/**
@@ -127,18 +127,12 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 	router.get('/get/:id', function(req,res){
 		getById(req.params.id, function(err, url){
 			new GridStore(db, url.grid_id, "r").open(function(err, gridStore) {
-				var stream = gridStore.stream(true);
-				var data = '';
-				stream.on("data", function(chunk) {
-					data += chunk;
-				});
-				stream.on("end", function() {
-					res.set('Content-Type', gridStore.contentType);
-					res.send(data);				    
-				});
+				res.set('Content-Type', gridStore.contentType);
+				gridStore.stream(true).pipe(base64.decode()).pipe(res);
 			});
 		});
-	});
+	});	
+
 });
 
 module.exports = router;
