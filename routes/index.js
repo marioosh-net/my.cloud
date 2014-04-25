@@ -85,13 +85,20 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 		var writestream = gfs.createWriteStream({
     		_id: fileId
 		});
+		var f = 0;
+		var firstChunk = true;
 		if(yt) {
 			console.log('youtube!');
 			var ystream = ytdl(form.url, { filter: function(format) { return format.container === 'mp4'; } });
+
 			ystream
 			.on('info', function(a,b){
 				console.log(a);
 			})
+			.on('data', function(chunk){
+				if(firstChunk) firstChunk = false;
+				f+=chunk.length;
+			})			
 			.on('end', function(){
 				console.log('end yt!!!');
 				/**
@@ -111,6 +118,9 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 					}); 
 				});			      					 
 			})			
+			.on('error', function(e) {
+				res.status(400).send('error');
+			})						
 			.pipe(writestream);
 		} else {
 			var r = request(form.url, function(err, res1, body){
@@ -130,34 +140,28 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 						res.status(200).send('ok');
 					}); 
 				});			      	
+			});
+
+			r
+			.on('readable', function(a){
+				console.log('readable');
+				console.log(a);
+			})
+			.on('data', function(chunk){
+				if(firstChunk) firstChunk = false;
+				f+=chunk.length;
+				console.log(f);
 			})
 			.on('end', function(){
 				console.log('end!!!');
 				/**
 				 * on write full insert url with id to gridfs
 				 */
-			})			
-			.pipe(writestream);
-
-			/**
-			 * czemu to nie dziala ???
-			 */
-			r.on('data', function(chunk) {
-				console.log('1');
-				/*
-				var pr = Math.floor(parseInt(gridStore.position)/contentLength * 100);
-				io.sockets.emit('progress',{p:pr});						
-				*/
-			})		
-			.on('end', function(){
-				console.log('end');
-				/**
-				 * on write full insert url with id to gridfs
-				 */
 			})
 			.on('error', function(e) {
 				res.status(400).send('error');
-			});
+			})			
+			.pipe(writestream);
 		}
 
 		/* 
