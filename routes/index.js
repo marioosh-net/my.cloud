@@ -5,7 +5,6 @@ var MongoClient = require('mongodb').MongoClient;
 var GridStore = require('mongodb').GridStore;
 var Grid = require('mongodb').Grid;
 var ObjectID = require('mongodb').ObjectID;
-var base64 = require('base64-stream');
 
 MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 	if(err) {
@@ -65,7 +64,6 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 		};
 
 		var io = req.app.get('io');
-
 		var request = require(form.url.lastIndexOf('https', 0) === 0?'https':'http').get(form.url, function(res1) {
 
 			var contentLength = parseInt(res1.headers['content-length']);
@@ -73,9 +71,6 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 		  	if(res1.statusCode != 200) {
 		  		return res.status(400).send('Problem z pobraniem adresu');
 		  	}				
-		  	res1.setEncoding('base64');
-		  	// res1.headers['content-type']
-
 
 			var fileId = new ObjectID();
 			var gridStore = new GridStore(db, fileId, "w", {root:'fs', content_type:res1.headers['content-type']});
@@ -128,7 +123,7 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 		getById(req.params.id, function(err, url){
 			new GridStore(db, url.grid_id, "r").open(function(err, gridStore) {
 				res.set('Content-Type', gridStore.contentType);
-				gridStore.stream(true).pipe(base64.decode()).pipe(res);
+				gridStore.stream(true).pipe(res);
 			});
 		});
 	});	

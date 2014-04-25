@@ -8,6 +8,10 @@ $(function(){
 		}
 	});
 
+	$('#url-form').submit(function(){
+		$('#save').trigger('click');
+		return false;
+	});
 	$('#save').click(function(){
 		$.ajax({
 			url: '/',
