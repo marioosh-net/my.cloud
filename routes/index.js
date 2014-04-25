@@ -72,8 +72,7 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 		};
 
 		var io = req.app.get('io');
-
-		var yt = form.url.lastIndexOf('https://www.youtube.com/', 0) === 0;
+		var yt = form.url.lastIndexOf('https://www.youtube.com/', 0) === 0 || form.url.lastIndexOf('http://www.youtube.com/', 0) === 0;
 		/*
 		if(yt) {
 			var ystream = ytdl(form.url, { filter: function(format) { return format.container === 'mp4'; } });
@@ -86,49 +85,86 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 		var writestream = gfs.createWriteStream({
     		_id: fileId
 		});
-
-		var r = request(form.url/*, function(err, res, body){
-			console.log(res);
-			if (!(!err && res.statusCode == 200)) {
-				return res.status(400).send('Problem z pobraniem adresu');
-			}
-		}*/)
-		.pipe(writestream, { end: false });
-
-		r.on('data', function(chunk) {
-			console.log('1');
-			/*
-			var pr = Math.floor(parseInt(gridStore.position)/contentLength * 100);
-			io.sockets.emit('progress',{p:pr});						
-			*/
-		})		
-		.on('end', function(){
-			console.log('end');
-			/**
-			 * on write full insert url with id to gridfs
-			 */
-			var urlsCollection = db.collection('urls');
-			urlsCollection.insert({
-				url:form.url,
-				type:res1.headers['content-type'],
-				grid_id: fileId
-			}, function(err, result) {
-				if(err) {
-					throw err;
+		if(yt) {
+			console.log('youtube!');
+			var ystream = ytdl(form.url, { filter: function(format) { return format.container === 'mp4'; } });
+			ystream
+			.on('info', function(a,b){
+				console.log(a);
+			})
+			.on('end', function(){
+				console.log('end yt!!!');
+				/**
+				 * on write full insert url with id to gridfs
+				 */
+				var urlsCollection = db.collection('urls');
+				urlsCollection.insert({
+					url:form.url,
+					type:'video/mp4',
+					grid_id: fileId
+				}, function(err, result) {
+					if(err) {
+						throw err;
+					}
+					getUrls(function(err, urls){
+						res.status(200).send('ok');
+					}); 
+				});			      					 
+			})			
+			.pipe(writestream);
+		} else {
+			var r = request(form.url, function(err, res1, body){
+				if(err || res1.statusCode != 200) {
+					return res.status(400).send('Problem z pobraniem adresu');
 				}
-				getUrls(function(err, urls){
-					res.status(200).send('ok');
-				}); 
-			});			      	
-		})
-		.on('error', function(e) {
-			res.status(400).send('error');
-		});
+				var urlsCollection = db.collection('urls');
+				urlsCollection.insert({
+					url:form.url,
+					type:res1.headers['content-type'],
+					grid_id: fileId
+				}, function(err, result) {
+					if(err) {
+						throw err;
+					}
+					getUrls(function(err, urls){
+						res.status(200).send('ok');
+					}); 
+				});			      	
+			})
+			.on('end', function(){
+				console.log('end!!!');
+				/**
+				 * on write full insert url with id to gridfs
+				 */
+			})			
+			.pipe(writestream);
 
-		console.log('sss');
+			/**
+			 * czemu to nie dziala ???
+			 */
+			r.on('data', function(chunk) {
+				console.log('1');
+				/*
+				var pr = Math.floor(parseInt(gridStore.position)/contentLength * 100);
+				io.sockets.emit('progress',{p:pr});						
+				*/
+			})		
+			.on('end', function(){
+				console.log('end');
+				/**
+				 * on write full insert url with id to gridfs
+				 */
+			})
+			.on('error', function(e) {
+				res.status(400).send('error');
+			});
+		}
 
-		/*
-
+		/* 
+		 *
+		 * old way
+		 *
+		 *
 		var request = require(form.url.lastIndexOf('https', 0) === 0?'https':'http').get(form.url, function(res1) {
 
 			var contentLength = parseInt(res1.headers['content-length']);
@@ -182,7 +218,7 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 	router.get('/get/:id', function(req,res){
 		getById(req.params.id, function(err, url){
 			new GridStore(db, url.grid_id, "r").open(function(err, gridStore) {
-				res.set('Content-Type', gridStore.contentType);
+				res.set('Content-Type', url.type/*gridStore.contentType*/);
 				gridStore.stream(true).pipe(res);
 			});
 		});
