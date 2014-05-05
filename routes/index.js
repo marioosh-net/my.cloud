@@ -67,101 +67,80 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 	});
 
 	router.post('/', function(req, res) {
+		var io = req.app.get('io');
+
 		var form = {
 			url: req.param('url')
 		};
-
-		var io = req.app.get('io');
-		var yt = form.url.lastIndexOf('https://www.youtube.com/', 0) === 0 || form.url.lastIndexOf('http://www.youtube.com/', 0) === 0;
-		/*
-		if(yt) {
-			var ystream = ytdl(form.url, { filter: function(format) { return format.container === 'mp4'; } });
-			ystream.pipe(fs.createWriteStream('vide.mp4'));
-		}
-		*/
+		
+		var yt = form.url.lastIndexOf('https://www.youtube.com/', 0) === 0 || form.url.lastIndexOf('http://www.youtube.com/', 0) === 0 || form.url.lastIndexOf('https://youtube.com/', 0) === 0 || form.url.lastIndexOf('http://youtube.com/', 0) === 0;
 
 		var gfs = Grid(db, mongo);
 		var fileId = new ObjectID();
 		var writestream = gfs.createWriteStream({
     		_id: fileId
 		});
-		var f = 0;
-		var firstChunk = true;
+
+		var insertToDB = function(type) {
+			var urlsCollection = db.collection('urls');
+			urlsCollection.insert({
+				url:form.url,
+				type:type,
+				grid_id: fileId
+			}, function(err, result) {
+				if(err) {
+					throw err;
+				}
+				getUrls(function(err, urls){
+					res.status(200).send('ok');
+				}); 
+			});			      				
+		};
+
 		if(yt) {
 			console.log('youtube!');
 			var ystream = ytdl(form.url, { filter: function(format) { return format.container === 'mp4'; } });
 
+			var contentLength = 0;
+			var f = 0;
+			var firstChunk = true;
+
 			ystream
-			.on('info', function(a,b){
-				console.log(a);
+			.on('info', function(info, format){
+				contentLength = format.size;
 			})
 			.on('data', function(chunk){
 				if(firstChunk) firstChunk = false;
 				f+=chunk.length;
+				var pr = Math.floor(parseInt(f)/contentLength * 100);
+				io.sockets.emit('progress',{p:pr});				
 			})			
 			.on('end', function(){
-				console.log('end yt!!!');
-				/**
-				 * on write full insert url with id to gridfs
-				 */
-				var urlsCollection = db.collection('urls');
-				urlsCollection.insert({
-					url:form.url,
-					type:'video/mp4',
-					grid_id: fileId
-				}, function(err, result) {
-					if(err) {
-						throw err;
-					}
-					getUrls(function(err, urls){
-						res.status(200).send('ok');
-					}); 
-				});			      					 
+				insertToDB('video/mp4');
 			})			
 			.on('error', function(e) {
 				res.status(400).send('error');
 			})						
 			.pipe(writestream);
 		} else {
-			var r = request(form.url, function(err, res1, body){
-				if(err || res1.statusCode != 200) {
-					return res.status(400).send('Problem z pobraniem adresu');
-				}
-				var urlsCollection = db.collection('urls');
-				urlsCollection.insert({
-					url:form.url,
-					type:res1.headers['content-type'],
-					grid_id: fileId
-				}, function(err, result) {
-					if(err) {
-						throw err;
-					}
-					getUrls(function(err, urls){
-						res.status(200).send('ok');
-					}); 
-				});			      	
+			require(form.url.lastIndexOf('https', 0) === 0?'https':'http').get(form.url, function(res1) {
+				var contentLength = parseInt(res1.headers['content-length']);
+				var f = 0;
+  				
+  				res1
+  				.on('data', function(chunk) {  					
+  					f+=chunk.length;
+					var pr = Math.floor(parseInt(f)/contentLength * 100);
+					io.sockets.emit('progress',{p:pr});
+			    })
+			    .on('end', function() {			  
+					insertToDB(res1.headers['content-type']);
+			    })
+			    .on('error', function(e) {
+					res.status(400).send('error');
+				})
+			    .pipe(writestream);
 			});
-
-			r
-			.on('readable', function(a){
-				console.log('readable');
-				console.log(a);
-			})
-			.on('data', function(chunk){
-				if(firstChunk) firstChunk = false;
-				f+=chunk.length;
-				console.log(f);
-			})
-			.on('end', function(){
-				console.log('end!!!');
-				/**
-				 * on write full insert url with id to gridfs
-				 */
-			})
-			.on('error', function(e) {
-				res.status(400).send('error');
-			})			
-			.pipe(writestream);
 		}
 
 		/* 
