@@ -68,6 +68,7 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 
 	router.post('/', function(req, res) {
 		var io = req.app.get('io');
+		var socketid = req.param('socketid')
 
 		var form = {
 			url: req.param('url')
@@ -113,7 +114,7 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 				if(firstChunk) firstChunk = false;
 				f+=chunk.length;
 				var pr = Math.floor(parseInt(f)/contentLength * 100);
-				io.sockets.emit('progress',{p:pr});				
+				io.sockets.socket(socketid).emit('progress',{p:pr});				
 			})			
 			.on('end', function(){
 				insertToDB('video/mp4');
@@ -131,7 +132,7 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
   				.on('data', function(chunk) {  					
   					f+=chunk.length;
 					var pr = Math.floor(parseInt(f)/contentLength * 100);
-					io.sockets.emit('progress',{p:pr});
+					io.sockets.socket(socketid).emit('progress',{p:pr});
 			    })
 			    .on('end', function() {			  
 					insertToDB(res1.headers['content-type']);

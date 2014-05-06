@@ -1,5 +1,8 @@
 $(function(){
 	var socket = io.connect();
+	socket.on('connect', function () {
+		$('#socketid').val(this.socket.sessionid);
+	});	
 	socket.on('progress', function (data) {
 		$('#progress').show();
 		$('#progress-el').css('width', data.p+'%');
