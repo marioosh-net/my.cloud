@@ -11,7 +11,7 @@ if(typeof form.odrabiam != 'undefined') {
 		<label class="sr-only" for="url">Ścieżka</label>
 		<input class="form-control" type="text" style="width: 600px;" id="url" name="url" value="<%if(typeof form.url != 'undefined'){%><%=form.url%><%}%>" />
 	</div>			
-	<button id="save" type="button" class="btn btn-default">Zapisz</button>
+	<button id="save" type="button" class="btn btn-primary">Zapisz</button>
 	<% if(typeof locals.message != 'undefined') { %>
 	<div style="width: 400px;" class="validation-message-container">
 	<span class="validation-message" style="color: #a00;"><%=message%></span>
@@ -22,7 +22,7 @@ if(typeof form.odrabiam != 'undefined') {
 </form>
 
 <div id="progress" class="progress" style="margin-top: 10px; display:none;">
-  <div id="progress-el" class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
+  <div id="progress-el" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
   </div>
 </div>
 

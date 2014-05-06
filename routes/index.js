@@ -25,10 +25,10 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 	});
 	db.createCollection('urls', function(err, collection) {});
 
-	var getUrls = function(callback) {
+	var getUrls = function(page, callback) {
 		var urls = [];
 		var urlsCollection = db.collection('urls');
-		var cursor = urlsCollection.find();
+		var cursor = urlsCollection.find().sort({_id:-1}).limit(page * 10);
 		cursor.each(function(err, i){
 			if(err) {
 				callback(err);
@@ -56,14 +56,22 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 		});
 	};
 
-	router.get('/', function(req, res) {
-
-		getUrls(function(err, urls){
-			res.render('index', { 
+	router.get('/list/:page?', function(req, res) {
+		getUrls(req.params.page ? req.params.page : 1, function(err, urls){
+			res.render('list', { 
 				urls: urls,
-				form:{}
+				page: req.params.page
 			});
 		}); 		
+	});
+
+	router.get('/:page?', function(req, res) {
+		
+			res.render('index', { 
+				//urls: urls,
+				form:{}
+			});
+		
 	});
 
 	router.post('/', function(req, res) {
@@ -82,7 +90,7 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
     		_id: fileId
 		});
 
-		var insertToDB = function(type) {
+		var insertToDB = function(type, callback) {
 			var urlsCollection = db.collection('urls');
 			urlsCollection.insert({
 				url:form.url,
@@ -90,11 +98,9 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 				grid_id: fileId
 			}, function(err, result) {
 				if(err) {
-					throw err;
+					callback(err);
 				}
-				getUrls(function(err, urls){
-					res.status(200).send('ok');
-				}); 
+				callback(null);
 			});			      				
 		};
 
@@ -114,10 +120,15 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 				if(firstChunk) firstChunk = false;
 				f+=chunk.length;
 				var pr = Math.floor(parseInt(f)/contentLength * 100);
-				io.sockets.socket(socketid).emit('progress',{p:pr});				
+				io.sockets.socket(socketid).emit('progress',{p:pr, count: f, of: contentLength});				
 			})			
 			.on('end', function(){
-				insertToDB('video/mp4');
+				insertToDB('video/mp4', function(err){
+					if(err) {
+						return res.status(500).send('fail');
+					}
+					res.status(200).send('ok');
+				});
 			})			
 			.on('error', function(e) {
 				res.status(400).send('error');
@@ -132,10 +143,15 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
   				.on('data', function(chunk) {  					
   					f+=chunk.length;
 					var pr = Math.floor(parseInt(f)/contentLength * 100);
-					io.sockets.socket(socketid).emit('progress',{p:pr});
+					io.sockets.socket(socketid).emit('progress',{p:pr, count: f, of: contentLength});
 			    })
 			    .on('end', function() {			  
-					insertToDB(res1.headers['content-type']);
+					insertToDB(res1.headers['content-type'], function(err){
+						if(err) {
+							return res.status(500).send('fail');
+						}						
+						res.status(200).send('ok');
+					});
 			    })
 			    .on('error', function(e) {
 					res.status(400).send('error');
@@ -143,60 +159,6 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 			    .pipe(writestream);
 			});
 		}
-
-		/* 
-		 *
-		 * old way
-		 *
-		 *
-		var request = require(form.url.lastIndexOf('https', 0) === 0?'https':'http').get(form.url, function(res1) {
-
-			var contentLength = parseInt(res1.headers['content-length']);
-
-		  	if(res1.statusCode != 200) {
-		  		return res.status(400).send('Problem z pobraniem adresu');
-		  	}				
-
-			var fileId = new ObjectID();
-			var gridStore = new GridStore(db, fileId, "w", {root:'fs', content_type:res1.headers['content-type']});
-			gridStore.chunkSize = 1024 * 256;
-			gridStore.open(function(err, gridStore) {
-			
-			    res1.on('data', function(chunk) {
-					gridStore.write(chunk, function(err, gridStore) {
-						var pr = Math.floor(parseInt(gridStore.position)/contentLength * 100);
-						io.sockets.emit('progress',{p:pr});						
-					});							    	
-			    });
-			 
-			    res1.on('end', function() {			    	
-					gridStore.close(function(err, result) {
-
-						var urlsCollection = db.collection('urls');
-						urlsCollection.insert({
-							url:form.url,
-							type:res1.headers['content-type'],
-							grid_id: fileId
-						}, function(err, result) {
-							if(err) {
-								throw err;
-							}
-							getUrls(function(err, urls){
-								res.status(200).send('ok');
-							}); 
-						});			      	
-
-					});
-			    });
-
-		    });
-
-		});
-		request.on('error', function(e) {
-			res.status(400).send('error');
-		});
-		*/		
-
 	});
 
 	router.get('/get/:id', function(req,res){

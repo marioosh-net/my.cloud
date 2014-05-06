@@ -1,12 +1,12 @@
 <% if(typeof urls != 'undefined' && urls.length > 0) { %>
-<div class="panel panel-default" style="margin-top: 10px;">
+<div class="panel panel-default" style="margin-top: 10px;"><input type="hidden" id="page" value="<%if(typeof page != 'undefined') {%><%=page%><%} else {%>1<%}%>"/>
   <div class="panel-heading">Ścieżki</div>
   <table class="table">
     <tbody>
 		<% for(var i=0; i<urls.length; i++){ %>
 		<tr>
 			<td>
-			<a href="/get/<%=urls[i].id%>"><%=urls[i].url%></a> <%if(typeof urls[i].type != 'undefined') {%><%=urls[i].type%> <%}%>
+			<a target="_blank" href="/get/<%=urls[i].id%>"><%=urls[i].url%></a> <%if(typeof urls[i].type != 'undefined') {%><%=urls[i].type%> <%}%>
 			</td>
 		</tr>
 		<% } %>        	
