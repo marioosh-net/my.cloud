@@ -136,6 +136,11 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 			.pipe(writestream);
 		} else {
 			require(form.url.lastIndexOf('https', 0) === 0?'https':'http').get(form.url, function(res1) {
+
+				if(res1.statusCode != 200) {
+		  			return res.status(400).send('Problem z pobraniem adresu');
+		  		}					
+		  		
 				var contentLength = parseInt(res1.headers['content-length']);
 				var f = 0;
   				

@@ -38,16 +38,14 @@ $(function(){
 		$.ajax({
 			url: '/',
 			method: 'post',
-			data: $("#url-form").serialize(),
-			statusCode: {
-				400: function() {
-					alert('Problem z pobraniem ścieżki');
-				}
-			}			
+			data: $("#url-form").serialize()
 		})
-		.done(function(data) {
+		.done(function(data, status, request) {
 			$('#list').load('/list');
 			$('#url').val('');
+		})
+		.fail(function(jqXHR, status, errorThrow){
+			alert('Problem z pobraniem ścieżki');
 		});		
 	});
 
