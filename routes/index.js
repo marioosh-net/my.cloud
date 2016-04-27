@@ -20,7 +20,7 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 	}
 	console.log('Connected to db');
 	console.log('Collections:');
-	db.listCollections().toArray(function(err, names){
+	db.collectionNames(function(err, names){
 		console.log(names);
 	});
 	db.createCollection('urls', function(err, collection) {});
