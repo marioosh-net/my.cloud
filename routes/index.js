@@ -25,10 +25,11 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 	});
 	db.createCollection('urls', function(err, collection) {});
 
-	var getUrls = function(page, callback) {
+	var getUrls = function(page, search, callback) {
 		var urls = [];
 		var urlsCollection = db.collection('urls');
-		var cursor = urlsCollection.find().sort({_id:-1}).limit(page * 10);
+		console.log(search);
+		var cursor = urlsCollection.find(search!=null?{'url' : {$regex : '.*'+search.trim()+'.*'}}:{}).sort({_id:-1}).limit(page * 10);
 		cursor.each(function(err, i){
 			if(err) {
 				callback(err);
@@ -57,7 +58,8 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 	};
 
 	router.get('/list/:page?', function(req, res) {
-		getUrls(req.params.page ? req.params.page : 1, function(err, urls){
+		console.log(req.query);
+		getUrls(req.params.page ? req.params.page : 1, req.query.search, function(err, urls){
 			res.render('list', { 
 				urls: urls,
 				page: req.params.page

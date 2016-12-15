@@ -49,9 +49,25 @@ $(function(){
 		});		
 	});
 
+	$('#search-clear').click(function(){
+		$('#search').val('');
+		$('#page').val('1');
+		$('#list').load('/list');
+	})
+	$('#search-btn').click(function(){
+		$('#page').val('1');
+		$('#list').load('/list/1?search='+encodeURIComponent($('#search').val()));		
+	});
+	$('#search').keypress(function (e) {
+  		if (e.which == 13) {	
+  			$('#search-btn').trigger('click');
+  			return false;
+  		}
+  	});
+
 	var loadPagePlus = function() {
     	var page = parseInt($('#page').val());
-		$('#list').load('/list/'+ ++page);		
+		$('#list').load('/list/'+ ++page+'?search='+encodeURIComponent($('#search').val()));		
 	}
 	$(window).scroll(function() {
 	    if($(window).scrollTop() == $(document).height() - $(window).height()) {
