@@ -1,15 +1,6 @@
-<%
-var odrabiam = false;
-if(typeof form.odrabiam != 'undefined') {
-	if(form.odrabiam == '1') {
-		odrabiam = true;
-	}
-} 
-%>
-
 <div class="row">
 	<div class="col-md-8 col-sm-8">
-		<form id="url-form" role="form" method="post" action="/">
+		<form id="url-form" role="form" method="post" action="/" style="margin-bottom: 10px;">
 		  	<div class="input-group">
 		      <input class="form-control" placeholder="Ścieżka" type="text" id="url" name="url" value="<%if(typeof form.url != 'undefined'){%><%=form.url%><%}%>" />
 		      <span class="input-group-btn">
@@ -45,7 +36,3 @@ if(typeof form.odrabiam != 'undefined') {
 		</div>
 	</div>
 </div>
-
-<script>$(function(){
-	$('#url').focus();
-});</script>

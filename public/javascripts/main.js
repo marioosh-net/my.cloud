@@ -53,10 +53,15 @@ $(function(){
 		$('#search').val('');
 		$('#page').val('1');
 		$('#list').load('/list');
+		$('#search').focus();
+		return false;
 	})
 	$('#search-btn').click(function(){
 		$('#page').val('1');
 		$('#list').load('/list/1?search='+encodeURIComponent($('#search').val()));		
+		$('#search').focus();
+		$('#search').select();
+		return false;
 	});
 	$('#search').keypress(function (e) {
   		if (e.which == 13) {	
@@ -76,6 +81,7 @@ $(function(){
 	});
 	$('#more').click(function(){
 		loadPagePlus();
+		return false;
 	});
 
 	/*
