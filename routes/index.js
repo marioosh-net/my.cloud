@@ -28,7 +28,6 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 	var getUrls = function(page, search, callback) {
 		var urls = [];
 		var urlsCollection = db.collection('urls');
-		console.log(search);
 		var cursor = urlsCollection.find(search!=null?{'url' : {$regex : '.*'+search.trim()+'.*'}}:{}).sort({_id:-1}).limit(page * 10);
 		cursor.each(function(err, i){
 			if(err) {
@@ -58,7 +57,6 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 	};
 
 	router.get('/list/:page?', function(req, res) {
-		console.log(req.query);
 		getUrls(req.params.page ? req.params.page : 1, req.query.search, function(err, urls){
 			res.render('list', { 
 				urls: urls,
