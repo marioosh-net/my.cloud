@@ -7,6 +7,7 @@ var Grid = require('mongodb').Grid;
 var ObjectID = require('mongodb').ObjectID;
 
 var request = require('request');
+var multer = require('multer');
 
 var mongo = require('mongodb');
 var Grid = require('gridfs-stream');
@@ -174,6 +175,14 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 			});
 		});
 	});	
+
+	var uploading = multer({
+		dest: __dirname + '../public/uploads/',
+		limits: {fileSize: 1000000, files:1},
+	});
+	router.post('/upload'/*, uploading*/, function(req, res) {
+		console.log(req.files);
+	});
 
 });
 

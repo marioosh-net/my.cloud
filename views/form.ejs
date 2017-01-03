@@ -27,7 +27,19 @@
 		    </div>
 	</div>
 </div>
-
+<div class="row">
+	<div class="col-md-12 col-sm-12">
+		<form id="url-form" role="form" method="post" action="/upload" enctype="multipart/form-data" style="margin-bottom: 10px; margin-top: 10px;">
+		  	<div class="input-group">
+		      <input class="form-control" placeholder="Plik" type="file" id="file" name="file" value="<%if(typeof form.file != 'undefined'){%><%=form.file%><%}%>" />
+		      <span class="input-group-btn">
+		        <button id="upload" type="submit" class="btn btn-primary">Upload</button>
+		      </span>
+		    </div>
+			<input type="hidden" name="socketid" id="socketid"/>
+		</form>
+	</div>
+</div>
 <div class="row">
 	<div class="col-md-12">
 		<div id="progress" class="progress" style="margin-top: 10px; display:none;">
