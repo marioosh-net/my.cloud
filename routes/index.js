@@ -6,6 +6,7 @@ var GridStore = require('mongodb').GridStore;
 var Grid = require('mongodb').Grid;
 var ObjectID = require('mongodb').ObjectID;
 var fs = require('fs');
+var contentDisposition = require('content-disposition');
 
 var request = require('request');
 var multer = require('multer');
@@ -171,6 +172,9 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 	router.get('/get/:id', function(req,res){
 		getById(req.params.id, function(err, url){
 			new GridStore(db, url.grid_id, "r").open(function(err, gridStore) {
+				if(url.type == 'application/octet-stream') {
+					res.set('Content-Disposition', contentDisposition(url.url));
+				}
 				res.set('Content-Type', url.type/*gridStore.contentType*/);
 				gridStore.stream(true).pipe(res);
 			});
