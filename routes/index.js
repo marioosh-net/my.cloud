@@ -5,6 +5,7 @@ var MongoClient = require('mongodb').MongoClient;
 var GridStore = require('mongodb').GridStore;
 var Grid = require('mongodb').Grid;
 var ObjectID = require('mongodb').ObjectID;
+var fs = require('fs');
 
 var request = require('request');
 var multer = require('multer');
@@ -176,12 +177,53 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 		});
 	});	
 
-	var uploading = multer({
-		dest: __dirname + '../public/uploads/',
-		limits: {fileSize: 1000000, files:1},
+	/**
+	 * file upload
+	 */
+	var upload = multer({
+		dest: __dirname + '/../uploads/',
+		limits: {fileSize: 100000000, files:1},
 	});
-	router.post('/upload'/*, uploading*/, function(req, res) {
-		console.log(req.files);
+	router.post('/upload', upload.single('file'), function(req, res) {
+		var io = req.app.get('io');
+		var socketid = req.param('socketid')
+
+		console.log(req.file);
+		var localFile = req.file.path;
+		var contentLength = req.file.size;
+
+		var fileId = new ObjectID();
+		var writestream = Grid(db, mongo).createWriteStream({
+    		_id: fileId
+		});
+
+		var f = 0;
+
+		fs.createReadStream(localFile)
+		.on('data', function(chunk) {  					
+			f+=chunk.length;
+			var pr = Math.floor(parseInt(f)/contentLength * 100);
+			io.sockets.socket(socketid).emit('progress',{p:pr, count: f, of: contentLength});
+	    })		
+		.on('end', function() {
+			fs.unlink(localFile, function(err){
+				if(!err) {
+					console.log(localFile + ' deleted.');
+				}
+			});
+			db.collection('urls').insert({
+				url: req.file.originalname,
+				type: 'application/octet-stream',
+				grid_id: fileId
+			}, function(err, result) {
+				if(err) {
+					return res.status(500).send('fail');
+				}						
+				//res.status(200).send('ok');
+				res.redirect('/');
+			});			      				
+		})
+		.pipe(writestream);
 	});
 
 });
