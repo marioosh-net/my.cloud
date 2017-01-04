@@ -31,7 +31,10 @@
 	<div class="col-md-12 col-sm-12">
 		<form id="url-form" role="form" method="post" action="/upload" enctype="multipart/form-data" style="margin-bottom: 10px; margin-top: 10px;">
 		  	<div class="input-group">
-		      <input class="form-control" placeholder="Plik" type="file" id="file" name="file" value="<%if(typeof form.file != 'undefined'){%><%=form.file%><%}%>" />
+				<label class="btn btn-default form-control">
+				    <span>Wybierz</span>
+				    <input type="file" name="file" id="file" placeholder="Plik" style="display: none;" onchange="$(this).prev('span').text($(this).val()!=''?$(this).val():'Wybierz')">
+				</label>		  	
 		      <span class="input-group-btn">
 		        <button id="upload" type="submit" class="btn btn-primary">Upload</button>
 		      </span>
