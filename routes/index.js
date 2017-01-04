@@ -7,6 +7,7 @@ var Grid = require('mongodb').Grid;
 var ObjectID = require('mongodb').ObjectID;
 var fs = require('fs');
 var contentDisposition = require('content-disposition');
+var mime = require('mime-types');
 
 var request = require('request');
 var multer = require('multer');
@@ -169,13 +170,24 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 		}
 	});
 
+	var viewableType = function(type) {
+		return type == 'application/pdf'||
+				type == 'image/png'||
+				type == 'image/jpeg'||
+				type == 'video/mp4'||
+				type.indexOf('application/pdf') !== -1||
+				type.indexOf('image/') !== -1||
+				type.indexOf('video/mp4') !== -1;
+	}
+
 	router.get('/get/:id', function(req,res){
 		getById(req.params.id, function(err, url){
 			new GridStore(db, url.grid_id, "r").open(function(err, gridStore) {
-				if(url.type == 'application/octet-stream') {
+				var type = url.type == 'application/octet-stream' ? mime.lookup(url.url) : url.type;
+				if(!type || !viewableType(type)) {
 					res.set('Content-Disposition', contentDisposition(url.url));
 				}
-				res.set('Content-Type', url.type/*gridStore.contentType*/);
+				res.set('Content-Type', type);
 				gridStore.stream(true).pipe(res);
 			});
 		});

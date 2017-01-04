@@ -19,6 +19,7 @@
     "socket.io":"0.9.17",
     "request":"*",
     "multer": "^1.2.1",
-    "content-disposition": "^0.5.2"
+    "content-disposition": "^0.5.2",
+    "mime-types": "2.1.13"
   }
 }
