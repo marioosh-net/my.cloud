@@ -9,6 +9,9 @@ var fs = require('fs');
 var contentDisposition = require('content-disposition');
 var mime = require('mime-types');
 
+var basicAuth = require('basic-auth');
+var config = require('../config');
+
 var request = require('request');
 var multer = require('multer');
 
@@ -17,6 +20,33 @@ var Grid = require('gridfs-stream');
 
 /* youtube support */
 var ytdl = require('ytdl');
+
+/**
+ * basic auth
+ */
+var auth = function (req, res, next) {
+
+	console.log(req);
+
+	function unauthorized(res) {
+		res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
+		return res.send(401);
+	};
+
+	var user = basicAuth(req);
+
+	if (!user || !user.name || !user.pass) {
+		return unauthorized(res);
+	};
+
+	if (user.name === config.basicAuth.username && user.pass === config.basicAuth.password) {
+		return next();
+	} else {
+		return unauthorized(res);
+	};
+};
+
+router.use(auth);
 
 MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 	if(err) {

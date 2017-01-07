@@ -20,6 +20,7 @@
     "request":"*",
     "multer": "^1.2.1",
     "content-disposition": "^0.5.2",
-    "mime-types": "2.1.13"
+    "mime-types": "2.1.13",
+    "basic-auth": "^1.1.0"
   }
 }
