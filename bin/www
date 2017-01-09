@@ -1,10 +1,17 @@
 #!/usr/bin/env node
 var debug = require('debug')('websafe');
 var app = require('../app');
+var config = require('../config.js');
+const fs = require('fs');
 
 app.set('port', process.env.PORT || 3000);
 
-var server = app.listen(app.get('port'), function() {
+const options = {
+  key: fs.readFileSync(config.tls.key),
+  cert: fs.readFileSync(config.tls.cert)
+};
+
+var server = require('https').createServer(options, app).listen(app.get('port'), function() {
   debug('Express server listening on port ' + server.address().port);
   
   var io = require('socket.io').listen(server);
