@@ -5,8 +5,9 @@ var MongoClient = require('mongodb').MongoClient;
 var http = require('http');
 var mongo = require('mongodb');
 var fs = require('fs');
+var config = require('./config');
 
-MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
+MongoClient.connect(config.db.url, function(err, db) {
 	var gfs = Grid(db, mongo);
 	var fileId = new ObjectID();
 	var writestream = gfs.createWriteStream({

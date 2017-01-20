@@ -48,7 +48,7 @@ var auth = function (req, res, next) {
 
 router.use(auth);
 
-MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
+MongoClient.connect(config.db.url, function(err, db) {
 	if(err) {
 		throw err;
 	}
@@ -56,8 +56,17 @@ MongoClient.connect("mongodb://localhost:27017/websafe", function(err, db) {
 	console.log('Collections:');
 	db.collectionNames(function(err, names){
 		console.log(names);
+		var needCreateCollection = true;
+		names.forEach(function(n){
+			if(n.name=='urls') {
+				needCreateCollection = false;
+			}
+		});
+		if(needCreateCollection) {
+			console.log('creating collection "urls"...');
+			db.createCollection('urls', function(err, collection) {});
+		}
 	});
-	db.createCollection('urls', function(err, collection) {});
 
 	var getUrls = function(page, search, callback) {
 		var urls = [];

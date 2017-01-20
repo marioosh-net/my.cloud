@@ -1,8 +1,9 @@
 var Db = require('mongodb').Db;
 var Server = require('mongodb').Server;
+var config = require('../config');
 
 var DbProvider = function(host, port) {
-  this.db = new Db('websafe', new Server(host, port, {auto_reconnect: true}, {}));
+  this.db = new Db(config.db.name, new Server(host, port, {auto_reconnect: true}, {}));
   this.db.open(function(){});
 };
 
