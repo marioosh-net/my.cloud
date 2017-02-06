@@ -25,6 +25,7 @@
     "request": "*",
     "socket.io": "0.9.17",
     "static-favicon": "~1.0.0",
-    "ytdl": "*"
+    "ytdl": "*",
+    "ytdl-core": "^0.8.1"
   }
 }

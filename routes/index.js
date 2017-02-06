@@ -19,7 +19,7 @@ var mongo = require('mongodb');
 var Grid = require('gridfs-stream');
 
 /* youtube support */
-var ytdl = require('ytdl');
+var ytdl = require('ytdl-core');
 
 router.get('/login',function(req, res) {
 	if(req.user) {
@@ -86,11 +86,7 @@ MongoClient.connect(config.db.url, function(err, db) {
 				callback(err);
 			}			
 			if(i != null) {
-				urls.push({
-					url:i.url,
-					type:i.type,
-					id:i._id
-				});
+				urls.push(i);
 			} else {
 				callback(null, urls);
 			}
@@ -142,11 +138,13 @@ MongoClient.connect(config.db.url, function(err, db) {
     		_id: fileId
 		});
 
-		var insertToDB = function(type, callback) {
+		var insertToDB = function(options, callback) {
 			var urlsCollection = db.collection('urls');
 			urlsCollection.insert({
-				url:form.url,
-				type:type,
+				url: form.url,
+				title: options.title,
+				upload: false,
+				type: options.type,
 				grid_id: fileId
 			}, function(err, result) {
 				if(err) {
@@ -163,9 +161,12 @@ MongoClient.connect(config.db.url, function(err, db) {
 			var contentLength = 0;
 			var f = 0;
 			var firstChunk = true;
+			var title = form.url;
 
 			ystream
 			.on('info', function(info, format){
+				title = info.title;
+				console.log(title);
 				contentLength = format.size;
 			})
 			.on('data', function(chunk){
@@ -175,7 +176,8 @@ MongoClient.connect(config.db.url, function(err, db) {
 				io.sockets.socket(socketid).emit('progress',{p:pr, count: f, of: contentLength});				
 			})			
 			.on('end', function(){
-				insertToDB('video/mp4', function(err){
+				console.log('end: '+title);
+				insertToDB({type:'video/mp4', title: title}, function(err){
 					if(err) {
 						return res.status(500).send('fail');
 					}
@@ -203,7 +205,7 @@ MongoClient.connect(config.db.url, function(err, db) {
 					io.sockets.socket(socketid).emit('progress',{p:pr, count: f, of: contentLength});
 			    })
 			    .on('end', function() {			  
-					insertToDB(res1.headers['content-type'], function(err){
+					insertToDB({type: res1.headers['content-type'], title:form.url}, function(err){
 						if(err) {
 							return res.status(500).send('fail');
 						}						
@@ -277,7 +279,9 @@ MongoClient.connect(config.db.url, function(err, db) {
 			});
 			db.collection('urls').insert({
 				url: req.file.originalname,
+				title: req.file.originalname,
 				type: 'application/octet-stream',
+				upload: true,
 				grid_id: fileId
 			}, function(err, result) {
 				if(err) {
