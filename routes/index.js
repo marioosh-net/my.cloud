@@ -22,10 +22,14 @@ var Grid = require('gridfs-stream');
 var ytdl = require('ytdl');
 
 router.get('/login',function(req, res) {
-	res.render('login', {
-		user : req.user, 
-		error : req.flash('error')
-	});
+	if(req.user) {
+		res.redirect('/');
+	} else {
+		res.render('login', {
+			user : req.user, 
+			error : req.flash('error')
+		});
+	}
 });
 
 router.post('/login', 
