@@ -2,6 +2,7 @@
 <% include form.ejs %>
 <div id="list"><% include list.ejs %></div>
 <a href="#" id="more" class="text-muted">Załaduj więcej</a>
+<a href="/logout" id="more" class="pull-right text-muted">Wyloguj</a>
 <% include bottom.ejs %>
 <script>
 $('#list').load('/list');

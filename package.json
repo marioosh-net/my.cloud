@@ -6,21 +6,24 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
-    "express": "~4.0.0",
-    "static-favicon": "~1.0.0",
-    "morgan": "~1.0.0",
-    "cookie-parser": "~1.0.1",
+    "basic-auth": "^1.1.0",
     "body-parser": "~1.0.0",
+    "connect-flash": "^0.1.1",
+    "content-disposition": "^0.5.2",
+    "cookie-parser": "~1.0.1",
     "debug": "~0.7.4",
     "ejs": "~0.8.5",
-    "mongodb": "1.*",
-    "ytdl": "*",
+    "express": "~4.0.0",
     "gridfs-stream": "*",
-    "socket.io":"0.9.17",
-    "request":"*",
-    "multer": "^1.2.1",
-    "content-disposition": "^0.5.2",
     "mime-types": "2.1.13",
-    "basic-auth": "^1.1.0"
+    "mongodb": "1.*",
+    "morgan": "~1.0.0",
+    "multer": "^1.2.1",
+    "passport": "^0.3.2",
+    "passport-local": "^1.0.0",
+    "request": "*",
+    "socket.io": "0.9.17",
+    "static-favicon": "~1.0.0",
+    "ytdl": "*"
   }
 }

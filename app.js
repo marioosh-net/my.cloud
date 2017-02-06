@@ -4,6 +4,12 @@ var favicon = require('static-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var flash = require('connect-flash');
+var config = require('./config');
+
+var basicAuth = require('basic-auth');
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
 
 var routes = require('./routes/index');
 
@@ -18,13 +24,44 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(cookieParser());
+app.use(flash());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(function(req, res, next) {
     next();
 });
 
+app.use(require('express-session')({
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: false
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use('/', routes);
+
+/**
+ * passport
+ */
+passport.serializeUser(function(user, done) {
+    done(null, user);
+});
+passport.deserializeUser(function(user, done) {
+    done(null, user);
+});
+passport.use(new LocalStrategy(
+    function(username, password, done) {
+        if (username === config.basicAuth.username && password === config.basicAuth.password) {
+            return done(null, {
+                username: username
+            });
+        } else {
+            return done(null, false, { message: 'Błędny login/hasło.' });
+        }
+    }
+));
 
 /// catch 404 and forwarding to error handler
 app.use(function(req, res, next) {
@@ -56,6 +93,5 @@ app.use(function(err, req, res, next) {
         error: {}
     });
 });
-
 
 module.exports = app;

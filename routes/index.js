@@ -9,7 +9,7 @@ var fs = require('fs');
 var contentDisposition = require('content-disposition');
 var mime = require('mime-types');
 
-var basicAuth = require('basic-auth');
+var passport = require('passport');
 var config = require('../config');
 
 var request = require('request');
@@ -21,32 +21,37 @@ var Grid = require('gridfs-stream');
 /* youtube support */
 var ytdl = require('ytdl');
 
+router.get('/login',function(req, res) {
+	res.render('login', {
+		user : req.user, 
+		error : req.flash('error')
+	});
+});
+
+router.post('/login', 
+	passport.authenticate('local', {
+		successRedirect: '/',
+		failureRedirect: '/login',
+		failureFlash: 'Błędny login/hasło' }
+	), function(req, res) {
+	res.redirect('/');
+});
+
+router.get('/logout', function(req, res) {
+    req.logout();
+    res.redirect('/');
+});
+
 /**
- * basic auth
+ * activate passport auth middleware
  */
-var auth = function (req, res, next) {
-
-	console.log(req);
-
-	function unauthorized(res) {
-		res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
-		return res.send(401);
-	};
-
-	var user = basicAuth(req);
-
-	if (!user || !user.name || !user.pass) {
-		return unauthorized(res);
-	};
-
-	if (user.name === config.basicAuth.username && user.pass === config.basicAuth.password) {
-		return next();
-	} else {
-		return unauthorized(res);
-	};
-};
-
-router.use(auth);
+router.use(function(req, res, next) {
+    if(req.user) {
+        next();
+    } else {
+        res.redirect('/login');
+    }
+});
 
 MongoClient.connect(config.db.url, function(err, db) {
 	if(err) {
