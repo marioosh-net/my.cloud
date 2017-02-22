@@ -34,11 +34,10 @@ router.get('/login',function(req, res) {
 
 router.post('/login', 
 	passport.authenticate('local', {
-		successRedirect: '/',
 		failureRedirect: '/login',
 		failureFlash: 'Błędny login/hasło' }
 	), function(req, res) {
-	res.redirect('/');
+	res.redirect(req.session.returnTo || '/');
 });
 
 router.get('/logout', function(req, res) {
@@ -53,6 +52,7 @@ router.use(function(req, res, next) {
     if(req.user) {
         next();
     } else {
+		req.session.returnTo = req.path;
         res.redirect('/login');
     }
 });
