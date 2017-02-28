@@ -2,11 +2,14 @@
 	<div class="col-md-8 col-sm-8">
 		<form id="url-form" role="form" method="post" action="/" style="margin-bottom: 10px;">
 		  	<div class="input-group">
-		      <input class="form-control" placeholder="Ścieżka" type="text" id="url" name="url" value="<%if(typeof form.url != 'undefined'){%><%=form.url%><%}%>" />
+		      <input class="form-control" placeholder="Ścieżka" type="text" id="url" name="url" value="<%if(typeof form.url != 'undefined'){%><%=form.url%><%}%>" required="required" />
 		      <span class="input-group-btn">
 		        <button id="save" type="button" class="btn btn-primary">Zapisz</button>
 		      </span>
 		    </div>
+			<div class="form-group">
+			    <input type="text" name="tags" class="form-control" id="tags" placeholder="Tagi">
+			  </div>		    
 			<% if(typeof locals.message != 'undefined') { %>
 				<div class="validation-message-container">
 				<span class="validation-message" style="color: #a00;"><%=message%></span>
@@ -33,12 +36,15 @@
 		  	<div class="input-group">
 				<label class="btn btn-default form-control">
 				    <span>Wybierz</span>
-				    <input type="file" name="file" id="file" placeholder="Plik" style="display: none;" onchange="$(this).prev('span').text($(this).val()!=''?$(this).val():'Wybierz')">
+				    <input type="file" name="file" id="file" placeholder="Plik" style="display: none;" onchange="$(this).prev('span').text($(this).val()!=''?$(this).val():'Wybierz')" required="required"/>
 				</label>		  	
 		      <span class="input-group-btn">
 		        <button id="upload" type="submit" class="btn btn-primary">Upload</button>
 		      </span>
 		    </div>
+			<div class="form-group">
+			    <input type="text" name="tags" class="form-control" id="tags" placeholder="Tagi">
+			  </div>		    		    
 			<input type="hidden" name="socketid" id="socketid"/>
 		</form>
 	</div>

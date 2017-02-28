@@ -20,6 +20,7 @@ var Grid = require('gridfs-stream');
 
 /* youtube support */
 var ytdl = require('ytdl-core');
+var async = require('async');
 
 router.get('/login',function(req, res) {
 	if(req.user) {
@@ -57,26 +58,34 @@ router.use(function(req, res, next) {
     }
 });
 
+var viewableType = function(type) {
+	return type == 'application/pdf'||
+			type == 'image/png'||
+			type == 'image/jpeg'||
+			type == 'video/mp4'||
+			type.indexOf('application/pdf') !== -1||
+			type.indexOf('image/') !== -1||
+			type.indexOf('video/mp4') !== -1;
+};
+
+/**
+ * file upload
+ */
+var upload = multer({
+	dest: __dirname + '/../uploads/',
+	limits: {fileSize: 100000000, files:1},
+});
+
 MongoClient.connect(config.db.url, function(err, db) {
 	if(err) {
 		throw err;
 	}
-	console.log('Connected to db');
-	console.log('Collections:');
+	console.log('Connected to db '+config.db.url);
 	db.collectionNames(function(err, names){
+		console.log('Collections:');		
 		console.log(names);
-		var needCreateCollection = true;
-		names.forEach(function(n){
-			if(n.name=='urls') {
-				needCreateCollection = false;
-			}
-		});
-		if(needCreateCollection) {
-			console.log('creating collection "urls"...');
-			db.createCollection('urls', function(err, collection) {});
-		}
 	});
-
+ 
 	var getUrls = function(page, search, callback) {
 		var urls = [];
 		var urlsCollection = db.collection('urls');
@@ -88,10 +97,22 @@ MongoClient.connect(config.db.url, function(err, db) {
 			if(i != null) {
 				urls.push(i);
 			} else {
-				callback(null, urls);
+				async.map(urls, function(url, callback1){
+					var tags = [];
+					db.collection('tags').find({_id: {$in: url.tags}}).each(function(err, tag){
+						if(tag != null) {
+							tags.push(tag);
+						} else {
+							url.tags = tags;
+							callback1(null, url);
+						}
+					});
+				}, function(err, result){					
+					callback(null, result);
+				});
 			}
 		});		
-	}	
+	};
 
 	var getById = function(id, callback) {
 		var urlsCollection = db.collection('urls');
@@ -101,6 +122,46 @@ MongoClient.connect(config.db.url, function(err, db) {
 				return callback(err);
 			};			
 			callback(null, r);
+		});
+	};
+
+	var updateTags = function(tags, callback) {
+		console.log('updating tags...');
+		var funcs = tags.map(function(tag){
+			return function(callback1){
+				var tag1 = {
+					name: tag.trim()
+				};		
+				if(tag1.name == '') {
+					callback1(null, null);
+				} else {
+					var tagInDb = db.collection('tags').find(tag1);
+					tagInDb.count(function(err,count){
+						if(count > 0) {
+							tagInDb.each(function(err, i){
+								if(i!=null) {
+									callback1(null, i._id);
+								}
+							});
+						} else {
+							db.collection('tags').insert(tag1, function(err, result){
+								if(err) {
+									callback1(err);
+								} else {
+									callback1(null, tag1._id);
+								}							
+							});
+						}
+					});
+				}
+			};
+		});
+		async.parallel(funcs, function(err, results){
+			if(err) {
+				callback(err);	
+			} else {
+				callback(null, results);	
+			}
 		});
 	};
 
@@ -127,7 +188,8 @@ MongoClient.connect(config.db.url, function(err, db) {
 		var socketid = req.param('socketid')
 
 		var form = {
-			url: req.param('url')
+			url: req.param('url'),
+			tags: req.param('tags')
 		};
 		
 		var yt = form.url.lastIndexOf('https://www.youtube.com/', 0) === 0 || form.url.lastIndexOf('http://www.youtube.com/', 0) === 0 || form.url.lastIndexOf('https://youtube.com/', 0) === 0 || form.url.lastIndexOf('http://youtube.com/', 0) === 0;
@@ -139,19 +201,27 @@ MongoClient.connect(config.db.url, function(err, db) {
 		});
 
 		var insertToDB = function(options, callback) {
-			var urlsCollection = db.collection('urls');
-			urlsCollection.insert({
+			var url = {
 				url: form.url,
 				title: options.title,
 				upload: false,
 				type: options.type,
 				grid_id: fileId
-			}, function(err, result) {
+			};
+			updateTags(form.tags.trim().split(','), function(err, tagids){
 				if(err) {
 					callback(err);
+				} else {
+					url.tags = tagids;
+					db.collection('urls').insert(url, function(err, result) {
+						if(err) {
+							callback(err);
+						} else {
+							callback(null);
+						}
+					});			      				
 				}
-				callback(null);
-			});			      				
+			});
 		};
 
 		if(yt) {
@@ -220,16 +290,6 @@ MongoClient.connect(config.db.url, function(err, db) {
 		}
 	});
 
-	var viewableType = function(type) {
-		return type == 'application/pdf'||
-				type == 'image/png'||
-				type == 'image/jpeg'||
-				type == 'video/mp4'||
-				type.indexOf('application/pdf') !== -1||
-				type.indexOf('image/') !== -1||
-				type.indexOf('video/mp4') !== -1;
-	}
-
 	router.get('/get/:id', function(req,res){
 		getById(req.params.id, function(err, url){
 			new GridStore(db, url.grid_id, "r").open(function(err, gridStore) {
@@ -243,16 +303,9 @@ MongoClient.connect(config.db.url, function(err, db) {
 		});
 	});	
 
-	/**
-	 * file upload
-	 */
-	var upload = multer({
-		dest: __dirname + '/../uploads/',
-		limits: {fileSize: 100000000, files:1},
-	});
 	router.post('/upload', upload.single('file'), function(req, res) {
 		var io = req.app.get('io');
-		var socketid = req.param('socketid')
+		var socketid = req.param('socketid');
 
 		console.log(req.file);
 		var localFile = req.file.path;
@@ -277,19 +330,28 @@ MongoClient.connect(config.db.url, function(err, db) {
 					console.log(localFile + ' deleted.');
 				}
 			});
-			db.collection('urls').insert({
+			var url = {
 				url: req.file.originalname,
 				title: req.file.originalname,
 				type: 'application/octet-stream',
 				upload: true,
 				grid_id: fileId
-			}, function(err, result) {
+			};
+
+			updateTags(req.param('tags').trim().split(','), function(err, tagids){
 				if(err) {
 					return res.status(500).send('fail');
-				}						
-				//res.status(200).send('ok');
-				res.redirect('/');
-			});			      				
+				} else {
+					url.tags = tagids;
+					db.collection('urls').insert(url, function(err, result) {
+						if(err) {
+							return res.status(500).send('fail');
+						} else {
+							res.redirect('/');
+						}
+					});			      				
+				}
+			});
 		})
 		.pipe(writestream);
 	});

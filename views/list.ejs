@@ -7,8 +7,14 @@
 		<tr>
 			<td>
 				<a href="/get/<%=urls[i]._id%>"><%= typeof urls[i].title != 'undefined' && urls[i].title ? urls[i].title : urls[i].url%></a> <%if(typeof urls[i].type != 'undefined') {%><%=urls[i].type%> <%}%>			
+				<br/>
+				<% for(var j=0; j<urls[i].tags.length; j++){ 
+					if(urls[i].tags[j] != null) {%>
+						<a href="/list?tag=<%=encodeURIComponent(urls[i].tags[j].name)%>"><%= urls[i].tags[j].name %></a>
+					<% }
+				} %>
 			</td>
-			<td>
+			<td class="text-right">
 				<a target="_blank" class="<%= (typeof urls[i].upload != 'undefined' && !urls[i].upload)||(urls[i].url.indexOf('http')==0) ? '' :'hidden'%>" href="<%=urls[i].url%>">&raquo;</a>
 			</td>
 		</tr>
