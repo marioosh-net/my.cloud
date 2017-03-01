@@ -86,32 +86,44 @@ MongoClient.connect(config.db.url, function(err, db) {
 		console.log(names);
 	});
  
-	var getUrls = function(page, search, callback) {
+	var getUrls = function(page, search, tag, callback) {
 		var urls = [];
 		var urlsCollection = db.collection('urls');
-		var cursor = urlsCollection.find(search!=null?{'url' : {$regex : '.*'+search.trim()+'.*'}}:{}).sort({_id:-1}).limit(page * 10);
-		cursor.each(function(err, i){
-			if(err) {
-				callback(err);
-			}			
-			if(i != null) {
-				urls.push(i);
-			} else {
-				async.map(urls, function(url, callback1){
-					var tags = [];
-					db.collection('tags').find({_id: {$in: url.tags}}).each(function(err, tag){
-						if(tag != null) {
-							tags.push(tag);
-						} else {
-							url.tags = tags;
-							callback1(null, url);
-						}
+
+		var loop = function(cursor) {
+			cursor.each(function(err, i){
+				if(err) {
+					callback(err);
+				}			
+				if(i != null) {
+					urls.push(i);
+				} else {
+					async.map(urls, function(url, callback1){
+						var tags = [];
+						db.collection('tags').find({_id: {$in: url.tags}}).each(function(err, tag){
+							if(tag != null) {
+								tags.push(tag);
+							} else {
+								url.tags = tags;
+								callback1(null, url);
+							}
+						});
+					}, function(err, result){					
+						callback(null, result);
 					});
-				}, function(err, result){					
-					callback(null, result);
-				});
-			}
-		});		
+				}
+			});
+		};
+
+		if(typeof tag != 'undefined') {
+			db.collection('tags').find({name:tag}).each(function(err, t){
+				if(t!=null) {
+					loop(db.collection('urls').find({tags: {$in: [t._id]}}).sort({_id:-1}).limit(page * 10));
+				}
+			});
+		} else {
+			loop(urlsCollection.find(search!=null?{'url' : {$regex : '.*'+search.trim()+'.*'}}:{}).sort({_id:-1}).limit(page * 10));
+		}
 	};
 
 	var getById = function(id, callback) {
@@ -166,7 +178,7 @@ MongoClient.connect(config.db.url, function(err, db) {
 	};
 
 	router.get('/list/:page?', function(req, res) {
-		getUrls(req.params.page ? req.params.page : 1, req.query.search, function(err, urls){
+		getUrls(req.params.page ? req.params.page : 1, req.query.search, req.query.tag, function(err, urls){
 			res.render('list', { 
 				urls: urls,
 				page: req.params.page
@@ -175,10 +187,10 @@ MongoClient.connect(config.db.url, function(err, db) {
 	});
 
 	router.get('/:page?', function(req, res) {
-		
 			res.render('index', { 
 				//urls: urls,
-				form:{}
+				form:{},
+				query: req.query
 			});
 		
 	});

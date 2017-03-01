@@ -43,6 +43,7 @@ $(function(){
 		.done(function(data, status, request) {
 			$('#list').load('/list');
 			$('#url').val('');
+			$('input[name="tags"]').val('');
 		})
 		.fail(function(jqXHR, status, errorThrow){
 			alert('Problem z pobraniem ścieżki');

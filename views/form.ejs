@@ -1,54 +1,72 @@
 <div class="row">
 	<div class="col-md-8 col-sm-8">
-		<form id="url-form" role="form" method="post" action="/" style="margin-bottom: 10px;">
-		  	<div class="input-group">
-		      <input class="form-control" placeholder="Ścieżka" type="text" id="url" name="url" value="<%if(typeof form.url != 'undefined'){%><%=form.url%><%}%>" required="required" />
-		      <span class="input-group-btn">
-		        <button id="save" type="button" class="btn btn-primary">Zapisz</button>
-		      </span>
-		    </div>
-			<div class="form-group">
-			    <input type="text" name="tags" class="form-control" id="tags" placeholder="Tagi">
-			  </div>		    
-			<% if(typeof locals.message != 'undefined') { %>
-				<div class="validation-message-container">
-				<span class="validation-message" style="color: #a00;"><%=message%></span>
-				</div>
-			<% } %>    
-			<input type="hidden" name="socketid" id="socketid"/>
-		</form>
+		<% include header.ejs %>
 	</div>
 	<div class="col-md-4 col-sm-4">
-		  	<div class="input-group">
-		      <input class="form-control" placeholder="Szukaj" type="text" id="search" name="search" autofocus="autofocus" />
-		      <span class="input-group-btn">
-		        <button id="search-clear" type="clear" class="btn btn-default">
-		        <span class="glyphicon glyphicon-remove"></span>
-		        </button>
-		        <button id="search-btn" type="button" class="btn btn-primary">Szukaj</button>
-		      </span>
-		    </div>
+	  	<div class="input-group">
+	      <input class="form-control" placeholder="Szukaj" type="text" id="search" name="search" autofocus="autofocus" />
+	      <span class="input-group-btn">
+	        <button id="search-clear" type="clear" class="btn btn-default">
+	        <span class="glyphicon glyphicon-remove"></span>
+	        </button>
+	        <button id="search-btn" type="button" class="btn btn-primary">Szukaj</button>
+	      </span>
+	    </div>
 	</div>
 </div>
-<div class="row">
-	<div class="col-md-12 col-sm-12">
-		<form id="url-form" role="form" method="post" action="/upload" enctype="multipart/form-data" style="margin-bottom: 10px; margin-top: 10px;">
-		  	<div class="input-group">
-				<label class="btn btn-default form-control">
-				    <span>Wybierz</span>
-				    <input type="file" name="file" id="file" placeholder="Plik" style="display: none;" onchange="$(this).prev('span').text($(this).val()!=''?$(this).val():'Wybierz')" required="required"/>
-				</label>		  	
-		      <span class="input-group-btn">
-		        <button id="upload" type="submit" class="btn btn-primary">Upload</button>
-		      </span>
-		    </div>
-			<div class="form-group">
-			    <input type="text" name="tags" class="form-control" id="tags" placeholder="Tagi">
-			  </div>		    		    
-			<input type="hidden" name="socketid" id="socketid"/>
-		</form>
-	</div>
+
+<ul id="tabs" class="nav nav-tabs" data-tabs="tabs">
+    <li class="active"><a href="#url-tab" data-toggle="tab">Dodaj ścieżkę</a></li>
+    <li><a href="#upload-tab" data-toggle="tab">Dodaj plik</a></li>
+</ul>
+
+<div id="my-tab-content" class="tab-content">
+    <div class="tab-pane fade in active" id="url-tab" role="tabpanel">
+		<div class="row">
+			<div class="col-md-12 col-sm-12">
+				<form id="url-form" role="form" method="post" action="/" style="margin-bottom: 10px;">
+				  	<div class="input-group form-group">
+				      <input class="form-control" placeholder="Ścieżka" type="text" id="url" name="url" value="<%if(typeof form.url != 'undefined'){%><%=form.url%><%}%>" required="required" />
+				      <span class="input-group-btn">
+				        <button id="save" type="button" class="btn btn-primary">Zapisz</button>
+				      </span>
+				    </div>
+					<div class="form-group">
+					    <input type="text" name="tags" class="form-control" id="tags1" placeholder="Lista tagów oddzielonych znakiem ,">
+					  </div>		    
+					<% if(typeof locals.message != 'undefined') { %>
+						<div class="validation-message-container">
+						<span class="validation-message" style="color: #a00;"><%=message%></span>
+						</div>
+					<% } %>    
+					<input type="hidden" name="socketid" id="socketid"/>
+				</form>
+			</div>
+		</div>
+    </div>
+    <div class="tab-pane fade" id="upload-tab" role="tabpanel">
+		<div class="row">
+			<div class="col-md-12 col-sm-12">
+				<form id="upload-form" role="form" method="post" action="/upload" enctype="multipart/form-data" style="margin-bottom: 10px;">
+				  	<div class="input-group form-group">
+						<label class="btn btn-default form-control">
+						    <span>Wybierz</span>
+						    <input type="file" name="file" id="file" placeholder="Plik" style="display: none;" onchange="$(this).prev('span').text($(this).val()!=''?$(this).val():'Wybierz')" required="required"/>
+						</label>		  	
+				      <span class="input-group-btn">
+				        <button id="upload" type="submit" class="btn btn-primary">Upload</button>
+				      </span>
+				    </div>
+					<div class="form-group">
+					    <input type="text" name="tags" class="form-control" id="tags2" placeholder="Lista tagów oddzielonych znakiem ,">
+					  </div>		    		    
+					<input type="hidden" name="socketid" id="socketid"/>
+				</form>
+			</div>
+		</div>
+    </div>
 </div>
+
 <div class="row">
 	<div class="col-md-12">
 		<div id="progress" class="progress" style="margin-top: 10px; display:none;">

@@ -5,5 +5,5 @@
 <a href="/logout" id="more" class="pull-right text-muted">Wyloguj</a>
 <% include bottom.ejs %>
 <script>
-$('#list').load('/list');
+$('#list').load("/list<%= query.tag != null ? '?tag='+encodeURIComponent(query.tag):''%>");
 </script>
