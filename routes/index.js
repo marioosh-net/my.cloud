@@ -137,6 +137,16 @@ MongoClient.connect(config.db.url, function(err, db) {
 		});
 	};
 
+	var getTags = function(search, callback) {
+		db.collection('tags')
+			.find(search!=null && search.trim()!='' ? {'name': {$regex : '.*'+search.trim()+'.*'}}:{})
+			.sort({_id:-1})
+			.limit(20)
+			.toArray(function(err, tags){
+				callback(err, tags);
+		});
+	};
+
 	var updateTags = function(tags, callback) {
 		console.log('updating tags...');
 		var funcs = tags.map(function(tag){
@@ -176,6 +186,18 @@ MongoClient.connect(config.db.url, function(err, db) {
 			}
 		});
 	};
+
+	router.get('/tags', function(req, res) {
+		getTags(req.query.q, function(err, tags){
+			if(!err) {
+				res.json(tags.map(function(tag){
+					tag.value = tag.name;
+					tag.label = tag.name;
+					return tag;
+				}));
+			}
+		}); 				
+	});
 
 	router.get('/list/:page?', function(req, res) {
 		getUrls(req.params.page ? req.params.page : 1, req.query.search, req.query.tag, function(err, urls){

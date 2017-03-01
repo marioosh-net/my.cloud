@@ -1,15 +1,15 @@
-var getBytesWithUnit = function( bytes ){
-	if( isNaN( bytes ) ){ return; }
+var getBytesWithUnit = function(bytes){
+	if(isNaN(bytes)){ return; }
 	var units = [ ' bytes', ' KB', ' MB', ' GB', ' TB', ' PB', ' EB', ' ZB', ' YB' ];
-	var amountOf2s = Math.floor( Math.log( +bytes )/Math.log(2) );
-	if( amountOf2s < 1 ){
+	var amountOf2s = Math.floor(Math.log(+bytes)/Math.log(2));
+	if(amountOf2s < 1){
 		amountOf2s = 0;
 	}
-	var i = Math.floor( amountOf2s / 10 );
-	bytes = +bytes / Math.pow( 2, 10*i );
+	var i = Math.floor(amountOf2s / 10);
+	bytes = +bytes / Math.pow(2, 10*i);
  
 	// Rounds to 3 decimals places.
-        if( bytes.toString().length > bytes.toFixed(3).toString().length ){
+        if(bytes.toString().length > bytes.toFixed(3).toString().length){
             bytes = bytes.toFixed(3);
         }
 	return bytes + units[i];
@@ -90,4 +90,67 @@ $(function(){
 		$('#more').hide();
 	}
 	*/
+
+	/**
+	 * tags autocomplete v1
+	 */
+	if(false)
+	$('input.typeahead').typeahead({
+		ajax: {
+			url: '/tags',
+	  		preDispatch: function(query) {
+	            return {
+	                q: query
+	            }
+	        }		        
+		}
+	});
+
+	/**
+	 * tags autocomplete v2
+	 */
+   	var split = function(val) {
+      return val.split(/,\s*/);
+    }
+    var extractLast = function(term) {
+      return split(term).pop();
+    }
+ 
+	$("#tags1, #tags2")
+	// don't navigate away from the field on tab when selecting an item
+	.on("keydown", function(event) {
+		if (event.keyCode === $.ui.keyCode.TAB &&
+			$(this).autocomplete("instance").menu.active) {
+			event.preventDefault();
+		}
+	})
+	.autocomplete({
+		source: function(request, response) {
+			$.getJSON("/tags", {
+				q: extractLast(request.term)
+			}, response);
+		},
+		search: function() {
+			// custom minLength
+			var term = extractLast(this.value);
+			if (term.length < 2) {
+				return false;
+			}
+		},
+		focus: function() {
+			// prevent value inserted on focus
+			return false;
+		},
+		select: function(event, ui) {
+			var terms = split(this.value);
+			// remove the current input
+			terms.pop();
+			// add the selected item
+			terms.push(ui.item.value);
+			// add placeholder to get the comma-and-space at the end
+			terms.push("");
+			this.value = terms.join(", ");
+			return false;
+		}
+	});	 
 });

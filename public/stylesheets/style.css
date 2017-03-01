@@ -11,3 +11,7 @@ body {
 	margin-top: 10px;
 	margin-bottom: 15px;
 }
+
+li.ui-menu-item {
+	border: 1px solid silver;
+}
