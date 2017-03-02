@@ -15,6 +15,35 @@ var getBytesWithUnit = function(bytes){
 	return bytes + units[i];
 };
 
+var decodeSafe = function(encoded) {
+	return typeof encoded != 'undefined'&&encoded!=null&&encoded.trim()!=''?decodeURIComponent(encoded):'';
+};
+
+var loadHash = function() {
+	var s = location.hash.split(',');
+	var search = $('input[name="search"]').val(decodeSafe(s[0].substring(1)));
+	var tag = $('input[name="tag"]').val(decodeSafe(s[1]));
+	var page = $('input[name="page"]').val(decodeSafe(s[2]));
+};
+
+var updateHash = function() {
+	var search = encodeURIComponent($('input[name="search"]').val());
+	var tag = encodeURIComponent($('input[name="tag"]').val());
+	var page = encodeURIComponent($('input[name="page"]').val());
+	location.hash = search+','+tag+','+page;
+};
+
+var loadList = function() {
+	var search = $('input[name="search"]').val();
+	var tag = $('input[name="tag"]').val();
+	var page = $('input[name="page"]').val();
+	$('#list').load("/list"
+		+(page != null && page != '' && page > 0 ? '/'+encodeURIComponent(page) : '')+"?"
+		+(tag != null && tag != '' && typeof tag != 'undefined' ? 'tag='+encodeURIComponent(tag) : '')
+		+(search != null && search != '' && typeof search != 'undefined' ? '&search='+encodeURIComponent(search) : ''));
+
+};
+
 $(function(){
 	var socket = io.connect();
 	socket.on('connect', function () {
@@ -59,7 +88,10 @@ $(function(){
 	})
 	$('#search-btn').click(function(){
 		$('#page').val('1');
-		$('#list').load('/list/1?search='+encodeURIComponent($('#search').val()));		
+		$('input[name="search"]').val(decodeURIComponent($('#search').val()));
+		updateHash();
+		loadList();
+		//$('#list').load('/list/1?search='+encodeURIComponent($('#search').val()));		
 		$('#search').focus();
 		$('#search').select();
 		return false;

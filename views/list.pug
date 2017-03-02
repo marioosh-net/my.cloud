@@ -1,6 +1,6 @@
 if typeof urls != 'undefined' && urls.length > 0
 	div(class="panel panel-default" style="margin-top: 10px;")
-		input(type="hidden" id="page" value="<%if(typeof page != 'undefined') {%><%=page%><%} else {%>1<%}%>")
+		input(type="hidden" id="page" value=typeof page != 'undefined'?page:'1')
 		div(class="panel-heading") Ścieżki
 		table(class="table")
 			tbody
@@ -17,12 +17,20 @@ if typeof urls != 'undefined' && urls.length > 0
 							each tag,j in url.tags
 								if tag != null
 									span(class="pull-right text-muted")
-										a(class="tag" href="/?tag="+encodeURIComponent(tag.name))
-											span(class="text-muted") 
-												=tag.name
+										a(class="tag text-muted" href="#" data-tag=encodeURIComponent(tag.name))
+											=tag.name
 										if j!=0
 											=','
 										else
 											=''
 						td(class="text-right")
 							a(target="_blank" class=(typeof url.upload != 'undefined' && !url.upload)||(url.url.indexOf('http')==0) ? '' :'hidden' href=url.url) &raquo;
+
+	script.
+		$('a.tag').on('click', function(){
+			$('input[name="tag"]').val(decodeURIComponent($(this).data('tag')));
+			updateHash();
+			loadList();
+			return false;
+		});		
+

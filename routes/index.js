@@ -115,14 +115,21 @@ MongoClient.connect(config.db.url, function(err, db) {
 			});
 		};
 
+		var query = {};
+		if(search != null) {
+			query['url'] = {
+				$regex : '.*'+search.trim()+'.*'
+			};
+		}
 		if(typeof tag != 'undefined') {
 			db.collection('tags').find({name:tag}).each(function(err, t){
 				if(t!=null) {
-					loop(db.collection('urls').find({tags: {$in: [t._id]}}).sort({_id:-1}).limit(page * 10));
+					query['tags'] = {$in: [t._id]};
+					loop(db.collection('urls').find(query).sort({_id:-1}).limit(page * 10));
 				}
 			});
 		} else {
-			loop(urlsCollection.find(search!=null?{'url' : {$regex : '.*'+search.trim()+'.*'}}:{}).sort({_id:-1}).limit(page * 10));
+			loop(urlsCollection.find(query).sort({_id:-1}).limit(page * 10));
 		}
 	};
 

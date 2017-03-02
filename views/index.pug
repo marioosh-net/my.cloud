@@ -4,7 +4,12 @@ div(id="list")
 	include list.pug	
 a(href="#" id="more" class="text-muted") Załaduj więcej
 a(href="/logout" id="more" class="pull-right text-muted") Wyloguj
+
+input(type="hidden" class="store" name="tag" value="")
+input(type="hidden" class="store" name="search" value="")
+input(type="hidden" class="store" name="page" value="")
+
 include bottom.pug
 script.
-	var tag='#{query.tag}';
-	$('#list').load("/list"+(tag != null && tag !='' ? '?tag='+encodeURIComponent(tag):''));
+	loadHash();
+	loadList();

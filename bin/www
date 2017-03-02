@@ -16,6 +16,7 @@ var listenCallback = function() {
   var io = require('socket.io').listen(server);
 	io.configure('development', function(){
 		io.set('transports', ['xhr-polling']);
+		io.disable('log');
 	});
 
   app.set('io',io);
