@@ -4,8 +4,11 @@ module.exports = {
         name: 'websafe'
     },
 	basicAuth: {
-		username: 'username',
-		password: 'password'
+        active: true,
+        credentials: {
+    		username: 'username',
+    		password: 'password'
+        }
 	},
     tls: {
     	active: true,

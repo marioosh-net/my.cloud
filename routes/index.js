@@ -50,7 +50,7 @@ router.get('/logout', function(req, res) {
  * activate passport auth middleware
  */
 router.use(function(req, res, next) {
-    if(req.user) {
+    if(req.user || !config.basicAuth.active) {
         next();
     } else {
 		req.session.returnTo = req.path;
@@ -292,24 +292,22 @@ MongoClient.connect(config.db.url, function(err, db) {
 				res.status(400).send('error');
 			})						
 			.pipe(writestream);
-		} else {
-			require(form.url.lastIndexOf('https', 0) === 0?'https':'http').get(form.url, function(res1) {
-
-				if(res1.statusCode != 200) {
-		  			return res.status(400).send('Problem z pobraniem adresu');
-		  		}					
-		  		
-				var contentLength = parseInt(res1.headers['content-length']);
-				var f = 0;
-  				
-  				res1
+		} else {		  		
+			var contentLength = 0, f = 0, ct = '';
+			var prefix = form.url.lastIndexOf('https://', 0) === 0?'':
+							form.url.lastIndexOf('http://', 0) === 0?'':'http://';
+			request.get(prefix+form.url)
+				.on('response', function(response) {
+					contentLength = parseInt(response.headers['content-length']);
+					ct = response.headers['content-type'];
+				})
   				.on('data', function(chunk) {  					
   					f+=chunk.length;
 					var pr = Math.floor(parseInt(f)/contentLength * 100);
 					io.sockets.socket(socketid).emit('progress',{p:pr, count: f, of: contentLength});
 			    })
 			    .on('end', function() {			  
-					insertToDB({type: res1.headers['content-type'], title:form.url}, function(err){
+					insertToDB({type: ct, title:form.url}, function(err){
 						if(err) {
 							return res.status(500).send('fail');
 						}						
@@ -317,10 +315,9 @@ MongoClient.connect(config.db.url, function(err, db) {
 					});
 			    })
 			    .on('error', function(e) {
-					res.status(400).send('error');
+					return res.status(400).send('Problem z pobraniem adresu');					
 				})
 			    .pipe(writestream);
-			});
 		}
 	});
 

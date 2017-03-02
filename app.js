@@ -53,7 +53,7 @@ passport.deserializeUser(function(user, done) {
 });
 passport.use(new LocalStrategy(
     function(username, password, done) {
-        if (username === config.basicAuth.username && password === config.basicAuth.password) {
+        if (username === config.basicAuth.credentials.username && password === config.basicAuth.credentials.password) {
             return done(null, {
                 username: username
             });
