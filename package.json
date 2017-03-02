@@ -12,7 +12,7 @@
     "content-disposition": "^0.5.2",
     "cookie-parser": "~1.0.1",
     "debug": "~0.7.4",
-    "ejs": "~0.8.5",
+    "pug": "^2.0.0-beta10",
     "express": "~4.0.0",
     "express-session": "^1.15.0",
     "gridfs-stream": "*",

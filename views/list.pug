@@ -1,0 +1,28 @@
+if typeof urls != 'undefined' && urls.length > 0
+	div(class="panel panel-default" style="margin-top: 10px;")
+		input(type="hidden" id="page" value="<%if(typeof page != 'undefined') {%><%=page%><%} else {%>1<%}%>")
+		div(class="panel-heading") Ścieżki
+		table(class="table")
+			tbody
+				each url,i in urls
+					tr
+						td
+							a(href="/get/"+url._id)
+								if typeof url.title != 'undefined' && url.title 
+									=url.title
+								else
+									=url.url
+							if typeof urls[i].type != 'undefined'
+								=' '+url.type
+							each tag,j in url.tags
+								if tag != null
+									span(class="pull-right text-muted")
+										a(class="tag" href="/?tag="+encodeURIComponent(tag.name))
+											span(class="text-muted") 
+												=tag.name
+										if j!=0
+											=','
+										else
+											=''
+						td(class="text-right")
+							a(target="_blank" class=(typeof url.upload != 'undefined' && !url.upload)||(url.url.indexOf('http')==0) ? '' :'hidden' href=url.url) &raquo;

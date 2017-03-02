@@ -14,4 +14,5 @@ body {
 
 li.ui-menu-item {
 	border: 1px solid silver;
+	background-color: #fff;
 }

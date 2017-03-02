@@ -1,0 +1,10 @@
+include top.pug
+include form.pug
+div(id="list")
+	include list.pug	
+a(href="#" id="more" class="text-muted") Załaduj więcej
+a(href="/logout" id="more" class="pull-right text-muted") Wyloguj
+include bottom.pug
+script.
+	var tag='#{query.tag}';
+	$('#list').load("/list"+(tag != null && tag !='' ? '?tag='+encodeURIComponent(tag):''));
