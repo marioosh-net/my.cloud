@@ -84,7 +84,7 @@ $(function(){
 		$('#search').val('');
 		$('#page').val('1');
 		$('#list').load('/list');
-		$('#search').focus();
+		//$('#search').focus();
 		return false;
 	})
 	$('#search-btn').click(function(){
@@ -94,8 +94,8 @@ $(function(){
 		updateHash();
 		loadList();
 		//$('#list').load('/list/1?search='+encodeURIComponent($('#search').val()));		
-		$('#search').focus();
-		$('#search').select();
+		//$('#search').focus();
+		//$('#search').select();
 		return false;
 	});
 	$('#search').keypress(function (e) {
