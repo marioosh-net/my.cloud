@@ -1,3 +1,14 @@
+div(class="row")
+	div(class="col-md-7 col-sm-7 to-bottom")
+		include header.pug
+	div(class="col-md-5 col-sm-5 to-bottom")
+		div(class="input-group")
+			input(class="form-control" placeholder="Szukaj" type="text" id="search" name="search" autofocus="autofocus")
+			span(class="input-group-btn")
+				button(id="search-clear" type="clear" class="btn btn-default")
+					span(class="glyphicon glyphicon-remove")
+				button(id="search-btn" type="button" class="btn btn-primary") Szukaj
+
 ul(id="tabs" class="nav nav-tabs" data-tabs="tabs")
 	li(class="active")
 		a(href="#list-tab" data-toggle="tab") Ścieżki

@@ -1,5 +1,5 @@
 body {
-	padding-top: 60px;
+	padding-top: 20px;
 	padding-bottom: 20px;
 }
 
@@ -28,3 +28,8 @@ li.ui-menu-item {
 	}
 }
 
+.to-bottom {
+    display: inline-block;
+    vertical-align: bottom;
+    float: none;
+}

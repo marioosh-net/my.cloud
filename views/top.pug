@@ -24,25 +24,4 @@ html(lang="pl")
 		script(src="jquery-ui/jquery-ui.min.js")
 		link(rel="stylesheet" type="text/css" href="jquery-ui/jquery-ui.min.css")
 		link(rel="stylesheet" type="text/css" href="/stylesheets/style.css")
-	!='<body>'
-
-	nav(class="navbar navbar-inverse navbar-fixed-top")
-		div(class="container")
-			div(class="navbar-header")
-				button(type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar")
-					span(class="sr-only") Toggle navigation
-					span(class="icon-bar")
-					span(class="icon-bar")
-					span(class="icon-bar")
-				a(href="/" class="navbar-brand" style="text-decoration: none")
-					i(class="icon-cloud")
-					=' my.cloud'						
-			div(id="navbar" class="navbar-collapse collapse")
-				form(class="navbar-form navbar-right form-inline "+(!logged?'hidden':''))
-					div(class="form-group")
-						input(class="form-control" placeholder="Szukaj" type="text" id="search" name="search" autofocus="autofocus")
-					button(id="search-clear" type="clear" class="btn btn-default")
-						span(class="glyphicon glyphicon-remove")
-					button(id="search-btn" type="button" class="btn btn-primary") Szukaj							
-
-	!='<div class="container">'
+	!='<body><div class="container">'
