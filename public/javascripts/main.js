@@ -80,6 +80,7 @@ $(function(){
 	});
 
 	$('#search-clear').click(function(){
+		$('#tabs a:first').tab('show');
 		$('#search').val('');
 		$('#page').val('1');
 		$('#list').load('/list');
@@ -87,6 +88,7 @@ $(function(){
 		return false;
 	})
 	$('#search-btn').click(function(){
+		$('#tabs a:first').tab('show');
 		$('#page').val('1');
 		$('input[name="search"]').val(decodeURIComponent($('#search').val()));
 		updateHash();
@@ -102,20 +104,6 @@ $(function(){
   			return false;
   		}
   	});
-
-	var loadPagePlus = function() {
-    	var page = parseInt($('#page').val());
-		$('#list').load('/list/'+ ++page+'?search='+encodeURIComponent($('#search').val()));		
-	}
-	$(window).scroll(function() {
-	    if($(window).scrollTop() == $(document).height() - $(window).height()) {
-	    	loadPagePlus();
-	    }
-	});
-	$('#more').click(function(){
-		loadPagePlus();
-		return false;
-	});
 
 	/*
 	if($(window).scrollTop() < $(document).height() - $(window).height()) {

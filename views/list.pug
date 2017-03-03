@@ -33,4 +33,18 @@ if typeof urls != 'undefined' && urls.length > 0
 			loadList();
 			return false;
 		});		
+		var loadPagePlus = function() {
+			var page = parseInt($('#page').val());
+			$('#list').load('/list/'+ ++page+'?search='+encodeURIComponent($('#search').val()));		
+		}		
+		$('#more').on('click', function(){
+			loadPagePlus();
+			return false;
+		});
+		$(window).scroll(function() {
+			if($(window).scrollTop() == $(document).height() - $(window).height()) {
+				loadPagePlus();
+			}
+		});
 
+	a(href="#" id="more" class="text-muted") Załaduj więcej

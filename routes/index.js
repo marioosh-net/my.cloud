@@ -51,9 +51,11 @@ router.get('/logout', function(req, res) {
  */
 router.use(function(req, res, next) {
     if(req.user || !config.basicAuth.active) {
+    	res.locals.logged = true;
         next();
     } else {
 		req.session.returnTo = req.path;
+    	res.locals.logged = false;		
         res.redirect('/login');
     }
 });

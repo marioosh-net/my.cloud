@@ -1,5 +1,5 @@
 body {
-	padding-top: 20px;
+	padding-top: 60px;
 	padding-bottom: 20px;
 }
 
@@ -16,3 +16,15 @@ li.ui-menu-item {
 	border: 1px solid silver;
 	background-color: #fff;
 }
+
+@media (max-width: 480px) { 
+    .nav-tabs > li {
+        float:none;
+        border: 1px solid #ddd;
+        border-radius: none;
+    }
+    .nav-tabs>li.active>a, .nav-tabs>li.active>a:hover, .nav-tabs>li.active>a:focus {
+		border: none !important;
+	}
+}
+
