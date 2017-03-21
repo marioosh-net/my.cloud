@@ -22,6 +22,9 @@ var Grid = require('gridfs-stream');
 var ytdl = require('ytdl-core');
 var async = require('async');
 
+const crypto = require('crypto');
+const secret = 'bc62dfc3583301792391d115d69bc3c0';
+
 router.get('/login',function(req, res) {
 	if(req.user) {
 		res.redirect('/');
@@ -50,7 +53,7 @@ router.get('/logout', function(req, res) {
  * activate passport auth middleware
  */
 router.use(function(req, res, next) {
-    if(req.user || !config.basicAuth.active) {
+    if(req.user || !config.basicAuth.active || req.path.indexOf('/share/') == 0) {
     	res.locals.logged = true;
         next();
     } else {
@@ -146,6 +149,26 @@ MongoClient.connect(config.db.url, function(err, db) {
 		});
 	};
 
+	var getByShareId = function(id, callback) {
+		db.collection('urls').findOne({share_id: id}, function(err,r){
+			if(err) {
+				return callback(err);
+			};			
+			callback(null, r);
+		});
+	};
+
+	var sendDoc = function(url, res)	 {
+		new GridStore(db, url.grid_id, "r").open(function(err, gridStore) {
+			var type = url.type == 'application/octet-stream' ? mime.lookup(url.url) : url.type;
+			if(!type || !viewableType(type)) {
+				res.set('Content-Disposition', contentDisposition(url.url));
+			}
+			res.set('Content-Type', type);
+			gridStore.stream(true).pipe(res);
+		});		
+	};
+
 	var getTags = function(search, callback) {
 		db.collection('tags')
 			.find(search!=null && search.trim()!='' ? {'name': {$regex : '.*'+search.trim()+'.*'}}:{})
@@ -214,6 +237,12 @@ MongoClient.connect(config.db.url, function(err, db) {
 				urls: urls,
 				page: req.params.page
 			});
+		}); 		
+	});
+
+	router.get('/urls/:page?', function(req, res) {
+		getUrls(req.params.page ? req.params.page : 1, req.query.search, req.query.tag, function(err, urls){
+			res.json(urls);
 		}); 		
 	});
 
@@ -332,16 +361,37 @@ MongoClient.connect(config.db.url, function(err, db) {
 
 	router.get('/get/:id', function(req,res){
 		getById(req.params.id, function(err, url){
-			new GridStore(db, url.grid_id, "r").open(function(err, gridStore) {
-				var type = url.type == 'application/octet-stream' ? mime.lookup(url.url) : url.type;
-				if(!type || !viewableType(type)) {
-					res.set('Content-Disposition', contentDisposition(url.url));
-				}
-				res.set('Content-Type', type);
-				gridStore.stream(true).pipe(res);
-			});
+			sendDoc(url, res);
 		});
 	});	
+
+	router.get('/share/:id', function(req,res){
+		getByShareId(req.params.id, function(err, url){
+			if(err) {
+				return res.status(400).json(err);
+			};	
+			if(url == null) {
+				return res.status(404).send('Document not found');
+			}
+			sendDoc(url, res);
+		});		
+	});
+
+	router.post('/share/:id', function(req,res){
+		var share_hash = crypto.createHmac('sha256', secret).update(req.params.id).digest('hex');
+		/*getByShareId(share_hash, function(err, url){
+			if(url != null) {
+				share_hash = null;
+			}*/
+			db.collection('urls').update({_id: BSON.ObjectID.createFromHexString(req.params.id)}, {$set: {share_id: share_hash}}, function(err, count, status) {
+				if(err || count == 0) {
+					return res.status(400).json(status);
+				} else {
+					res.status(201).json({share_id: share_hash});
+				}
+			});			
+		/*});*/
+	});		
 
 	router.post('/upload', upload.single('file'), function(req, res) {
 		var io = req.app.get('io');

@@ -24,6 +24,10 @@ if typeof urls != 'undefined' && urls.length > 0
 										else
 											=''
 						td(class="text-right")
+							if typeof urls[i].share_id == 'undefined' || true
+								a(href="#" class="share" data-id=url._id) 
+									i(class="icon-share-alt")
+						td(class="text-right")
 							a(target="_blank" class=(typeof url.upload != 'undefined' && !url.upload)||(url.url.indexOf('http')==0) ? '' :'hidden' href=url.url) &raquo;
 
 	script.
@@ -46,5 +50,29 @@ if typeof urls != 'undefined' && urls.length > 0
 				loadPagePlus();
 			}
 		});
+		$('a.share').on('click', function(){
+			$('#modal-body').html('');
+			$.post('/share/'+$(this).data('id'), function(data, status, jqXHR){
+				if(data.share_id!=null) {
+					$('#modal-body').html('Link do zasobu:<br/><a target="_blank" href="/share/'+data.share_id+'" >/share/'+data.share_id+'</a>');
+				} else {
+					$('#modal-body').html('Udostępnianie zasobu wyłączone.');
+				}
+				$('#myModal').modal();
+				console.log(data);
+			}).fail(function(s){
+				console.log(s);
+			});
+			return false;
+		});		
 
 	a(href="#" id="more" class="text-muted") Załaduj więcej
+
+// link dialog
+#myModal.modal.fade(tabindex='-1', role='dialog', aria-labelledby='myModalLabel')
+	.modal-dialog(role='document')
+		.modal-content
+			div(class="modal-body" id="modal-body")
+				| ...
+			.modal-footer
+				button.btn.btn-default(type='button', data-dismiss='modal') Zamknij
