@@ -33,3 +33,7 @@ li.ui-menu-item {
     vertical-align: bottom;
     float: none;
 }
+a.link {
+	padding-left: 5px;
+	padding-right: 5px;
+}

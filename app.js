@@ -13,19 +13,33 @@ var LocalStrategy = require('passport-local').Strategy;
 
 var routes = require('./routes/index');
 
+var i18n = require('i18n');
+
 var app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
+/**
+ * i18next
+ */
+i18n.configure({
+    locales:['en','pl'],
+    cookie: 'lang',
+    directory: __dirname + '/locales',
+    autoReload: true
+}); 
+
 app.use(favicon());
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(cookieParser());
+app.use(i18n.init);
 app.use(flash());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/locales', express.static(path.join(__dirname, 'locales')));
 
 app.use(function(req, res, next) {
     next();

@@ -3,7 +3,7 @@ module.exports = {
         url: 'mongodb://localhost:27017/websafe'
     },
 	basicAuth: {
-        active: true,
+        active: false,
         credentials: {
     		username: 'username',
     		password: 'password'

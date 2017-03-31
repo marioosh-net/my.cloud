@@ -1,7 +1,8 @@
 if typeof urls != 'undefined' && urls.length > 0
 	div(class="panel panel-default" style="margin-top: 10px;")
 		input(type="hidden" id="page" value=typeof page != 'undefined'?page:'1')
-		div(class="panel-heading") Ścieżki
+		div(class="panel-heading")
+			=__('list.header')
 		table(class="table")
 			tbody
 				each url,i in urls
@@ -31,42 +32,48 @@ if typeof urls != 'undefined' && urls.length > 0
 							a(target="_blank" class=(typeof url.upload != 'undefined' && !url.upload)||(url.url.indexOf('http')==0) ? '' :'hidden' href=url.url) &raquo;
 
 	script.
-		$('a.tag').on('click', function(){
-			$('input[name="tag"]').val(decodeURIComponent($(this).data('tag')));
-			updateHash();
-			loadList();
-			return false;
-		});		
-		var loadPagePlus = function() {
-			var page = parseInt($('#page').val());
-			$('#list').load('/list/'+ ++page+'?search='+encodeURIComponent($('#search').val()));		
-		}		
-		$('#more').on('click', function(){
-			loadPagePlus();
-			return false;
-		});
-		$(window).scroll(function() {
-			if($(window).scrollTop() == $(document).height() - $(window).height()) {
-				loadPagePlus();
-			}
-		});
-		$('a.share').on('click', function(){
-			$('#modal-body').html('');
-			$.post('/share/'+$(this).data('id'), function(data, status, jqXHR){
-				if(data.share_id!=null) {
-					$('#modal-body').html('Link do zasobu:<br/><a target="_blank" href="/share/'+data.share_id+'" >/share/'+data.share_id+'</a>');
-				} else {
-					$('#modal-body').html('Udostępnianie zasobu wyłączone.');
-				}
-				$('#myModal').modal();
-				console.log(data);
-			}).fail(function(s){
-				console.log(s);
-			});
-			return false;
-		});		
 
-	a(href="#" id="more" class="text-muted") Załaduj więcej
+		i18n_(function(t) {
+
+			$('a.tag').on('click', function(){
+				$('input[name="tag"]').val(decodeURIComponent($(this).data('tag')));
+				updateHash();
+				loadList();
+				return false;
+			});		
+			var loadPagePlus = function() {
+				var page = parseInt($('#page').val());
+				$('#list').load('/list/'+ ++page+'?search='+encodeURIComponent($('#search').val()));		
+			}		
+			$('#more').on('click', function(){
+				loadPagePlus();
+				return false;
+			});
+			$(window).scroll(function() {
+				if($(window).scrollTop() == $(document).height() - $(window).height()) {
+					loadPagePlus();
+				}
+			});
+			$('a.share').on('click', function(){
+				$('#modal-body').html('');
+				$.post('/share/'+$(this).data('id'), function(data, status, jqXHR){
+					if(data.share_id!=null) {
+						$('#modal-body').html(t('share.link')+'<br/><a target="_blank" href="/share/'+data.share_id+'" >/share/'+data.share_id+'</a>');
+					} else {
+						$('#modal-body').html(t('resource.sharing.disabled'));
+					}
+					$('#myModal').modal();
+					console.log(data);
+				}).fail(function(s){
+					console.log(s);
+				});
+				return false;
+			});		
+
+		});
+
+	a(href="#" id="more" class="text-muted link")
+		=__('button.more')
 
 // link dialog
 #myModal.modal.fade(tabindex='-1', role='dialog', aria-labelledby='myModalLabel')
@@ -75,4 +82,5 @@ if typeof urls != 'undefined' && urls.length > 0
 			div(class="modal-body" id="modal-body")
 				| ...
 			.modal-footer
-				button.btn.btn-default(type='button', data-dismiss='modal') Zamknij
+				button.btn.btn-default(type='button', data-dismiss='modal')
+					=__('dialog.close')
