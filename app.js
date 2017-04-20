@@ -6,6 +6,8 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var flash = require('connect-flash');
 var config = require('./config');
+var log4js = require('log4js');
+var log = log4js.getLogger();
 
 var basicAuth = require('basic-auth');
 var passport = require('passport');
@@ -28,7 +30,8 @@ i18n.configure({
     locales:['en','pl'],
     cookie: 'lang',
     directory: __dirname + '/locales',
-    autoReload: true
+    autoReload: true,
+    keyseparator: '#'
 }); 
 
 app.use(favicon());
@@ -101,6 +104,7 @@ if (app.get('env') === 'development') {
 // production error handler
 // no stacktraces leaked to user
 app.use(function(err, req, res, next) {
+    log.error(err);
     res.status(err.status || 500);
     res.render('error', {
         message: err.message,

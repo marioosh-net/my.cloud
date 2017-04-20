@@ -8,6 +8,8 @@ var ObjectID = require('mongodb').ObjectID;
 var fs = require('fs');
 var contentDisposition = require('content-disposition');
 var mime = require('mime-types');
+var log4js = require('log4js');
+var log = log4js.getLogger();
 
 var passport = require('passport');
 var config = require('../config');
@@ -85,10 +87,10 @@ MongoClient.connect(config.db.url, function(err, db) {
 	if(err) {
 		throw err;
 	}
-	console.log('Connected to db '+config.db.url);
+	log.info('Connected to db '+config.db.url);
 	db.collectionNames(function(err, names){
-		console.log('Collections:');		
-		console.log(names);
+		log.info('Collections:');		
+		log.info(names);
 	});
  
 	var getUrls = function(page, search, tag, callback) {
@@ -180,7 +182,7 @@ MongoClient.connect(config.db.url, function(err, db) {
 	};
 
 	var updateTags = function(tags, callback) {
-		console.log('updating tags...');
+		log.info('updating tags...');
 		var funcs = tags.map(function(tag){
 			return function(callback1){
 				var tag1 = {
@@ -297,7 +299,7 @@ MongoClient.connect(config.db.url, function(err, db) {
 		};
 
 		if(yt) {
-			console.log('youtube!');
+			log.info('youtube!');
 			var ystream = ytdl(form.url, { filter: function(format) { return format.container === 'mp4'; } });
 
 			var contentLength = 0;
@@ -308,7 +310,7 @@ MongoClient.connect(config.db.url, function(err, db) {
 			ystream
 			.on('info', function(info, format){
 				title = info.title;
-				console.log(title);
+				log.info(title);
 				contentLength = format.size;
 			})
 			.on('data', function(chunk){
@@ -318,7 +320,7 @@ MongoClient.connect(config.db.url, function(err, db) {
 				io.sockets.socket(socketid).emit('progress',{p:pr, count: f, of: contentLength});				
 			})			
 			.on('end', function(){
-				console.log('end: '+title);
+				log.info('end: '+title);
 				insertToDB({type:'video/mp4', title: title}, function(err){
 					if(err) {
 						return res.status(500).send('fail');
@@ -397,7 +399,7 @@ MongoClient.connect(config.db.url, function(err, db) {
 		var io = req.app.get('io');
 		var socketid = req.param('socketid');
 
-		console.log(req.file);
+		log.info(req.file);
 		var localFile = req.file.path;
 		var contentLength = req.file.size;
 
@@ -417,7 +419,7 @@ MongoClient.connect(config.db.url, function(err, db) {
 		.on('end', function() {
 			fs.unlink(localFile, function(err){
 				if(!err) {
-					console.log(localFile + ' deleted.');
+					log.info(localFile + ' deleted.');
 				}
 			});
 			var url = {

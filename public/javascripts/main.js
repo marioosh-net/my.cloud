@@ -53,6 +53,7 @@ var i18n_ = function(callback) {
 	}
 	i18n.init({ 
 		//lng: 'pl'/*$.cookie('lang')*/,
+		keyseparator: '#',
 		resGetPath: '/locales/__lng__.json',
 		fallbackLng: 'en',
 		useCookie: true,
