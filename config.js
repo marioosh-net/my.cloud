@@ -1,6 +1,6 @@
 module.exports = {
     db: {
-        url: 'mongodb://localhost:27017/websafe'
+        url: 'mongodb://user:password@localhost:27017/websafe'
     },
 	basicAuth: {
         active: true,
