@@ -380,7 +380,8 @@ MongoClient.connect(config.db.url, function(err, db) {
 	});
 
 	router.post('/share/:id', function(req,res){
-		var share_hash = crypto.createHmac('sha256', secret).update(req.params.id).digest('hex');
+		var share_hash = crypto.createHmac('md5', secret).update(req.params.id).digest('hex')
+								.substring(0,8); // short hash
 		/*getByShareId(share_hash, function(err, url){
 			if(url != null) {
 				share_hash = null;
