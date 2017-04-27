@@ -25,7 +25,6 @@ var ytdl = require('ytdl-core');
 var async = require('async');
 
 const crypto = require('crypto');
-const secret = 'bc62dfc3583301792391d115d69bc3c0';
 
 router.get('/login',function(req, res) {
 	if(req.user) {
@@ -380,7 +379,7 @@ MongoClient.connect(config.db.url, function(err, db) {
 	});
 
 	router.post('/share/:id', function(req,res){
-		var share_hash = crypto.createHmac('md5', secret).update(req.params.id).digest('hex')
+		var share_hash = crypto.createHmac('md5', config.crypto.secret).update(req.params.id).digest('hex')
 								.substring(0,8); // short hash
 		/*getByShareId(share_hash, function(err, url){
 			if(url != null) {

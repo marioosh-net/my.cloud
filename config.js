@@ -2,6 +2,9 @@ module.exports = {
     db: {
         url: 'mongodb://user:password@localhost:27017/websafe'
     },
+    crypto: {
+        secret: 'bc62dfc3583301792391d115d69bc3c0s'
+    },
 	basicAuth: {
         active: true,
         credentials: {
