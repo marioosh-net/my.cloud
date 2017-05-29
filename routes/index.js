@@ -185,7 +185,7 @@ MongoClient.connect(config.db.url, function(err, db) {
 		var funcs = tags.map(function(tag){
 			return function(callback1){
 				var tag1 = {
-					name: tag.trim()
+					name: tag.trim().toLowerCase()
 				};		
 				if(tag1.name == '') {
 					callback1(null, null);
