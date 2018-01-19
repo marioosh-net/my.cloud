@@ -73,7 +73,7 @@ $(function(){
 
 		var socket = io.connect();
 		socket.on('connect', function () {
-			$('#socketid').val(this.socket.sessionid);
+			$('#socketid').val(socket.id);
 		});	
 		socket.on('progress', function (data) {
 			$('#progress').show();

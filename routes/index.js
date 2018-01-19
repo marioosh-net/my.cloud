@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var BSON = require('mongodb').BSONPure;
+var BSON = require('bson');
 var MongoClient = require('mongodb').MongoClient;
 var GridStore = require('mongodb').GridStore;
 var Grid = require('mongodb').Grid;
@@ -82,16 +82,13 @@ var upload = multer({
 	limits: {fileSize: 100000000, files:1},
 });
 
-MongoClient.connect(config.db.url, function(err, db) {
+MongoClient.connect(config.db.url, function(err, client) {
 	if(err) {
 		log.error(err);
 		throw err;
 	}
 	log.info('Connected to db '+config.db.url);
-	db.collectionNames(function(err, names){
-		log.info('Collections:');		
-		log.info(names);
-	});
+	const db = client.db(client.s.options.dbName);
  
 	var getUrls = function(page, search, tag, callback) {
 		var urls = [];
@@ -317,7 +314,7 @@ MongoClient.connect(config.db.url, function(err, db) {
 				if(firstChunk) firstChunk = false;
 				f+=chunk.length;
 				var pr = Math.floor(parseInt(f)/contentLength * 100);
-				io.sockets.socket(socketid).emit('progress',{p:pr, count: f, of: contentLength});				
+				io.of(socketid).emit('progress',{p:pr, count: f, of: contentLength});				
 			})			
 			.on('end', function(){
 				log.info('end: '+title);
@@ -344,7 +341,7 @@ MongoClient.connect(config.db.url, function(err, db) {
   				.on('data', function(chunk) {  					
   					f+=chunk.length;
 					var pr = Math.floor(parseInt(f)/contentLength * 100);
-					io.sockets.socket(socketid).emit('progress',{p:pr, count: f, of: contentLength});
+					io.of(socketid).emit('progress',{p:pr, count: f, of: contentLength});
 			    })
 			    .on('end', function() {			  
 					insertToDB({type: ct, title:form.url}, function(err){
@@ -415,7 +412,7 @@ MongoClient.connect(config.db.url, function(err, db) {
 		.on('data', function(chunk) {  					
 			f+=chunk.length;
 			var pr = Math.floor(parseInt(f)/contentLength * 100);
-			io.sockets.socket(socketid).emit('progress',{p:pr, count: f, of: contentLength});
+			io.of(socketid).emit('progress',{p:pr, count: f, of: contentLength});
 	    })		
 		.on('end', function() {
 			fs.unlink(localFile, function(err){
