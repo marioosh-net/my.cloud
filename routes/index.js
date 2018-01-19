@@ -314,7 +314,7 @@ MongoClient.connect(config.db.url, function(err, client) {
 				if(firstChunk) firstChunk = false;
 				f+=chunk.length;
 				var pr = Math.floor(parseInt(f)/contentLength * 100);
-				io.of(socketid).emit('progress',{p:pr, count: f, of: contentLength});				
+				io.to(socketid).emit('progress',{p:pr, count: f, of: contentLength});				
 			})			
 			.on('end', function(){
 				log.info('end: '+title);
@@ -341,7 +341,7 @@ MongoClient.connect(config.db.url, function(err, client) {
   				.on('data', function(chunk) {  					
   					f+=chunk.length;
 					var pr = Math.floor(parseInt(f)/contentLength * 100);
-					io.of(socketid).emit('progress',{p:pr, count: f, of: contentLength});
+					io.to(socketid).emit('progress',{p:pr, count: f, of: contentLength});
 			    })
 			    .on('end', function() {			  
 					insertToDB({type: ct, title:form.url}, function(err){
@@ -412,7 +412,7 @@ MongoClient.connect(config.db.url, function(err, client) {
 		.on('data', function(chunk) {  					
 			f+=chunk.length;
 			var pr = Math.floor(parseInt(f)/contentLength * 100);
-			io.of(socketid).emit('progress',{p:pr, count: f, of: contentLength});
+			io.to(socketid).emit('progress',{p:pr, count: f, of: contentLength});
 	    })		
 		.on('end', function() {
 			fs.unlink(localFile, function(err){
