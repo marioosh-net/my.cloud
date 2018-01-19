@@ -23,7 +23,7 @@
     "passport": "^0.3.2",
     "passport-local": "^1.0.0",
     "request": "*",
-    "socket.io": "0.9.17",
+    "socket.io": "2.0.4",
     "static-favicon": "~1.0.0",
     "ytdl": "*",
     "ytdl-core": "^0.8.1",

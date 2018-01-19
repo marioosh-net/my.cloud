@@ -84,6 +84,7 @@ var upload = multer({
 
 MongoClient.connect(config.db.url, function(err, db) {
 	if(err) {
+		log.error(err);
 		throw err;
 	}
 	log.info('Connected to db '+config.db.url);
