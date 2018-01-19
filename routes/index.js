@@ -301,14 +301,17 @@ MongoClient.connect(config.db.url, function(err, client) {
 
 			var contentLength = 0;
 			var f = 0;
+			var ct = 'video/mp4';
 			var firstChunk = true;
 			var title = form.url;
 
 			ystream
 			.on('info', function(info, format){
 				title = info.title;
-				log.info(title);
-				contentLength = format.size;
+			})
+			.on('response', function(response){
+				contentLength = parseInt(response.headers['content-length']);
+				ct = response.headers['content-type'];
 			})
 			.on('data', function(chunk){
 				if(firstChunk) firstChunk = false;
@@ -318,7 +321,7 @@ MongoClient.connect(config.db.url, function(err, client) {
 			})			
 			.on('end', function(){
 				log.info('end: '+title);
-				insertToDB({type:'video/mp4', title: title}, function(err){
+				insertToDB({type:ct, title: title}, function(err){
 					if(err) {
 						return res.status(500).send('fail');
 					}
