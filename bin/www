@@ -30,12 +30,16 @@ var listenCallback = function() {
 };
 
 try {
+	if(config.tls.active) {
 	// try ssl
 	const options = {
 	  key: fs.readFileSync(config.tls.key),
 	  cert: fs.readFileSync(config.tls.cert)
 	};
 	var server = require('https').createServer(options, app).listen(app.get('port'), listenCallback);
+	} else {
+		throw new Error('ssl not active');
+	}
 } catch (err)  {
 	logger.error(err);
 	// fallback no ssl
