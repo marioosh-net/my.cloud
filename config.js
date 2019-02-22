@@ -13,7 +13,7 @@ module.exports = {
         }
 	},
     tls: {
-    	active: true,
+    	active: false,
     	key: 'tls/ca.key',
     	cert: 'tls/ca.crt',
     	ciphers: 'ECDHE-RSA-AES256-SHA:AES256-SHA:RC4-SHA:RC4:HIGH:!MD5:!aNULL:!EDH:!AESGCM'
